@@ -40,4 +40,3 @@ if __name__ == "__main__":
     for t in test_cases:
         print(f"{t:12} -> {validate_ticker(t)}")
 
-####
