@@ -24,6 +24,8 @@ The system provides:
 * Trend detection \& anomaly analysis
 * Interactive dashboards for stock/news insights
 * Exportable reports (PDF, CSV, JSON)
+* Keyword frequency data for visualization (word clouds) from financial news articles
+
 
 
 
@@ -106,6 +108,25 @@ portfolio = parse\_portfolio\_csv("portfolio.csv")
 
 print(portfolio)
 
+###### **generate_wordcloud_data(news_list: list[dict])**
+
+from src.analysis.generate_wordcloud_data import generate_wordcloud_data
+
+# Example usage
+news_list = [
+    {"title": "Apple stock rises as new iPhone impresses investors"},
+    {"title": "Tech stocks fall slightly after strong gains"},
+    {"title": "Apple launches new product lineup amid market optimism"},
+    {"title": "Investors optimistic as Apple stock reaches record high"}
+]
+
+result = generate_wordcloud_data(news_list)
+print(result)
+
+# Example output:
+# {'apple': 3, 'stock': 2, 'investors': 2, 'new': 2, 'iphone': 1, 'market': 1, ...}
+
+
 
 
 
@@ -139,7 +160,7 @@ print(portfolio)
 * topic\_modeling()
 * detect\_price\_anomalies()
 * calculate\_technical\_indicators()
-* generate\_wordcloud\_data
+* generate_worldcloud_data()
 
 
 
