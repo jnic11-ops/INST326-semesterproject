@@ -47,6 +47,12 @@ The system provides:
 **Problem**: Many new investors who lack experience or financial literacy struggle with decision-making due to information overload from fragmented data sources(news sites, market analysis, social media, financial statements). This information is scattered, overwhelming, and often unclear. We aim to develop a system that centralizes financial data, news sentiment, and trend detection into a single program, providing beginner investors with relevant knowledge to make efficient and informed data-driven investment choices and prevent losses due to uninformed or hasty decisions.  
 
 
+####**Installation & Setup** 
+
+1. Clone the repository: https://github.com/jnic11-ops/INST326-semesterproject
+2. Create a virtual environment (Visual Studio Code)
+3. Install dependencies
+4. Run example scripts to test functionality
 
 
 
