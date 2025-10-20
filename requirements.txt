@@ -1,1 +1,5 @@
-No external packages are needed yet.
+# Core data handling
+pandas>=2.0.0
+
+#Financial data retrieval
+yfinance>=0.2.37
