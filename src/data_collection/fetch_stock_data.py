@@ -67,4 +67,3 @@ if __name__ == "__main__":
     df2 = fetch_stock_data("yahoo", "AAPL", "2024-01-01", "2024-05-01", use_adjusted=False)
     print("\nWithout Adjusted Close:")
     print(df2.head())
-
