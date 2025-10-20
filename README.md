@@ -29,7 +29,12 @@ The system provides:
 
 #### **Team Members \& Roles**
 
-* Matthew Daniel - Frontend Developer -- Creating Simple Utility Functions, Graphical Output Designer, and Function Library structure
+* Matthew Daniel -- Data Base Researcher/Graphical Output Designer 
+* Jacob Nicholson -- Project Coordinator
+* Ray Dickscheid -- Documentation Manager
+* Dorian Mkam -- User Interface Designer
+
+
 
 
 
