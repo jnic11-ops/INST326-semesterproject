@@ -50,8 +50,14 @@ The system provides:
 ####**Installation & Setup** 
 
 1. Clone the repository: https://github.com/jnic11-ops/INST326-semesterproject
+
 2. Create a virtual environment (Visual Studio Code)
+
 3. Install dependencies
+- pip install - r requirements.txt
+- pandas
+- yfinance
+
 4. Run example scripts to test functionality
 
 
