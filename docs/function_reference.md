@@ -37,6 +37,7 @@ True
 False
 
 
+
 ---
 
 ## normalize_date(date_str: str) -> datetime
@@ -70,6 +71,7 @@ datetime.datetime(2025, 10, 9, 0, 0)
 
 >>> normalize_date("2025-10-09 14:30:00")
 datetime.datetime(2025, 10, 9, 14, 30)
+
 
 
 ---
@@ -140,13 +142,32 @@ Handles both positive and negative values gracefully.
 
 ---
 
-## 📁 parse_portfolio_csv(file_path: str) -> dict
+## parse_portfolio_csv(file_path: str) -> dict
 
 **Description:**  
 Parses a user's portfolio CSV file and normalizes its schema into a standardized dictionary.  
 Validates numeric values and ensures required columns exist (`ticker`, `shares`, `buy_price`).
 
-**Expected CSV Format:**  
+**Expected CSV Format:** 
+
+---
+## fetch_stock_data — Retrieve Historical Stock Prices
+
+Example showing how to download Apple (AAPL) stock data from Yahoo Finance between two dates.
+
+```python
+from src.data_collection.fetch_stock_data import fetch_stock_data
+
+# Fetch data including adjusted close prices
+df1 = fetch_stock_data("yahoo", "AAPL", "2024-01-01", "2024-05-01", use_adjusted=True)
+print("With Adjusted Close:")
+print(df1.head())
+
+# Fetch data without adjusted close
+df2 = fetch_stock_data("yahoo", "AAPL", "2024-01-01", "2024-05-01", use_adjusted=False)
+print("\nWithout Adjusted Close:")
+print(df2.head())
+
 
 
 

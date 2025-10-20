@@ -16,9 +16,7 @@ for t in tickers:
     print(f"{t} valid? -> {validate_ticker(t)}")
 
 
-
 ### normalize_date(date_str: str)
-
 Convert a date string in various formats to a standardized datetime object.
 
 ```python
@@ -33,7 +31,6 @@ for d in dates:
 
 
 ### clean_text(text: str)
-
 Clean and normalize text for NLP preprocessing.
 
 ```python
@@ -51,7 +48,6 @@ for txt in sample_texts:
 
 
 ### format_currency(value: float)
-
 Format numbers as human-readable currency strings.
 
 ```python
@@ -65,10 +61,25 @@ for v in values:
 
 
 
+## 2. Data Collection 
 
+## fetch_stock_data — Retrieve Historical Stock Prices
+Example showing how to download Apple (AAPL) stock data from Yahoo Finance between two dates.
+
+```python
+from src.data_collection.fetch_stock_data import fetch_stock_data
+
+# Fetch data including adjusted close prices
+df1 = fetch_stock_data("yahoo", "AAPL", "2024-01-01", "2024-05-01", use_adjusted=True)
+print("With Adjusted Close:")
+print(df1.head())
+
+# Fetch data without adjusted close
+df2 = fetch_stock_data("yahoo", "AAPL", "2024-01-01", "2024-05-01", use_adjusted=False)
+print("\nWithout Adjusted Close:")
+print(df2.head())
 
 ### parse_portfolio_csv(file_path: str)
-
 Parse a user's portfolio CSV file and normalize its schema.
 
 ```python
