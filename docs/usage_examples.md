@@ -94,3 +94,22 @@ from src.data_collection.parse_portfolio_csv import parse_portfolio_csv
 portfolio = parse_portfolio_csv("portfolio.csv")
 print(portfolio)
 
+
+## 3. Interface
+This function helps convert user inputs into a structured query format that can be sent to data collection or analysis modules.
+
+```python
+from src.interface.build_user_query import build_user_query
+
+# Example user input
+params = {
+    "ticker": "AAPL",
+    "sector": "Technology",
+    "sentiment": "positive",
+    "limit": 25
+}
+
+query = build_user_query(params)
+print(query)
+
+

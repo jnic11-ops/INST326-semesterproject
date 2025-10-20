@@ -172,4 +172,33 @@ print(df2.head())
 
 
 
+---
+
+### 🧩 build_user_query(params: dict) -> dict
+
+**Description:**  
+Interprets user-provided parameters (from a web UI, CLI, or config file) and converts them into a structured query dictionary that can be used by backend data retrieval or analysis functions.
+
+**Parameters:**
+| Name | Type | Description |
+|------|------|--------------|
+| `params` | `dict` | User input parameters, including optional filters such as `ticker`, `sector`, `sentiment`, and `limit`. |
+
+**Returns:**  
+`dict` – A structured query containing filters, query type, and a result limit.
+
+**Example Input:**
+```python
+{
+    "ticker": "AAPL",
+    "sector": "Technology",
+    "sentiment": "positive",
+    "limit": 25
+}
+
+
+
+
+
+
 
