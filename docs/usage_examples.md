@@ -2,9 +2,11 @@
 This document demonstrates how to use the simple utility functions, data processing functions, interface functions, analysis functions, and reporting functions in practice. 
 It includes **example inputs and outputs** and **workflow examples**. 
 
-## 1. Simple Utility Functions
+## ALL FUNCTIONS
 
-### validate_ticker(ticker: str)
+1. Simple Utiltiy Functions
+
+----validate_ticker(ticker(ticker:str)----
 
 Validate stock ticker symbols.
 
@@ -16,7 +18,7 @@ for t in tickers:
     print(f"{t} valid? -> {validate_ticker(t)}")
 
 
-### normalize_date(date_str: str)
+----normalize_date(date_str: str)----
 Convert a date string in various formats to a standardized datetime object.
 
 ```python
@@ -30,7 +32,7 @@ for d in dates:
 
 
 
-### clean_text(text: str)
+----clean_text(text: str)----
 Clean and normalize text for NLP preprocessing.
 
 ```python
@@ -47,7 +49,7 @@ for txt in sample_texts:
     print(f"Original: {txt}\nCleaned : {cleaned}\n")
 
 
-### format_currency(value: float)
+----format_currency(value: float)----
 Format numbers as human-readable currency strings.
 
 ```python
