@@ -35,9 +35,7 @@ True
 
 >>> validate_ticker("goog")
 False
-
-
-
+```
 ---
 
 ## normalize_date(date_str: str) -> datetime
@@ -100,7 +98,7 @@ and removes extra whitespace to produce clean, tokenized text suitable for analy
 ```python
 >>> clean_text("<p>This is a Sample text, with HTML tags!</p>")
 'sample text html tags'
-
+```
 
 ---
 
@@ -133,9 +131,7 @@ Handles both positive and negative values gracefully.
 
 >>> format_currency("abc")
 'Invalid value'
-
-
-
+```
 
 
 
@@ -167,9 +163,7 @@ print(df1.head())
 df2 = fetch_stock_data("yahoo", "AAPL", "2024-01-01", "2024-05-01", use_adjusted=False)
 print("\nWithout Adjusted Close:")
 print(df2.head())
-
-
-
+```
 
 
 ---
@@ -195,7 +189,7 @@ Interprets user-provided parameters (from a web UI, CLI, or config file) and con
     "sentiment": "positive",
     "limit": 25
 }
-
+```
 
 
 
