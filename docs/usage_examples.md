@@ -98,7 +98,6 @@ print(portfolio)
 ```
 ## 3. Interface
 
-```
 ### build_user_query Example
 
 This function helps convert user inputs into a structured query format that can be sent to data collection or analysis modules.
