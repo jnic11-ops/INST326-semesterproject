@@ -99,7 +99,7 @@ print(portfolio)
 ## 3. Interface
 
 ---
-
+```
 ## Usage Example Section**
 Add this to your:  
 📄 `docs/usage_examples.md`  
@@ -107,9 +107,9 @@ Add this to your:
 You can place it after your previous examples, separated with a divider.
 
 ```markdown
----
 
-### 🧠 build_user_query Example
+```
+### build_user_query Example
 
 This function helps convert user inputs into a structured query format that can be sent to data collection or analysis modules.
 
