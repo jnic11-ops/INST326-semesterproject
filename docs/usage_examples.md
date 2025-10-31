@@ -137,6 +137,68 @@ query = build_user_query(params)
 print(query)
 ```
 
+### build_dashboard_summary(portfolio: dict, latest_prices: dict, news_items: list = None, alerts: list = None, max_news: int = 5) -> dict
+
+Builds a compact, JSON-friendly dashboard data object summarizing the user’s portfolio.
+
+```python
+from datetime import datetime
+from src.interface.dashboard import build_dashboard_summary
+
+portfolio = {
+    "AAPL": {"shares": 10, "buy_price": 150.0},
+    "MSFT": {"shares": 3,  "buy_price": 300.0}
+}
+
+latest = {"AAPL": 158.2, "MSFT": 317.75}
+
+news = [
+    {
+        "title": "Apple releases earnings",
+        "source": "Reuters",
+        "published_at": datetime.utcnow(),
+        "sentiment": "positive",
+        "url": "https://example.com"
+    }
+]
+
+summary = build_dashboard_summary(
+    portfolio,
+    latest_prices=latest,
+    news_items=news,
+    max_news=3
+)
+
+print(summary["total_value"])
+print(summary["positions"][0])
+```
+
+### prepare_chart_payload(prices: list, timestamps: list = None, indicators: dict = None, title: str = None) -> dict
+
+Creates a chart-friendly payload compatible with most front-end plotting libraries (e.g., Chart.js, Recharts).
+Includes ISO-formatted labels, price data, optional technical indicator overlays, and basic statistics.
+
+```python
+from datetime import datetime
+from src.interface.charts import prepare_chart_payload
+from src.analysis.calculate_technical_indicators import calculate_technical_indicators
+
+prices = [100, 101, 102, 101, 103]
+stamp = [datetime(2025, 10, 20+i) for i in range(len(prices))]
+
+ind = calculate_technical_indicators(prices, window=3)
+
+payload = prepare_chart_payload(
+    prices,
+    timestamps=stamp,
+    indicators={"SMA": ind["SMA"]},
+    title="Portfolio Performance"
+)
+
+print(payload["meta"])
+print(payload["datasets"][0]["data"])
+```
+
 ## 4. Analysis
 
 ### calculate_technical_indicators(prices: List[float],window: int=14)
