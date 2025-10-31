@@ -283,3 +283,54 @@ None
 ```
 ---
 
+### build_dashboard_summary(portfolio: dict, latest_prices: dict, news_items: list = None, alerts: list = None, max_news: int = 5) -> dict
+
+##Description:##
+Builds a compact, JSON-friendly dashboard data object summarizing the user’s portfolio.
+The result contains total portfolio value, per-position statistics, recent news items, and high-priority alerts.
+Useful for front-end dashboards, CLI summaries, and report modules.
+
+##Parameters:##
+Name	Type	Description
+portfolio	dict	A dictionary of positions containing shares and optionally buy_price
+latest_prices	dict	Mapping of tickers to most recent price values
+news_items	list (optional)	List of recent news objects containing titles, timestamps, sentiment, etc.
+alerts	list (optional)	A list of risk notices, warnings, or anomaly flags
+max_news	int	Number of news items to include
+
+##Returns:##
+dict — A JSON-serializable summary containing:
+total_value — aggregated value of all holdings
+positions — breakdown containing price, unrealized gains/losses, and allocation percentage
+recent_news — trimmed list of relevant news items
+top_alerts — at most 10 alerts for display
+
+##Raises:##
+ValueError if input types are invalid or max_news is negative
+
+---
+
+### prepare_chart_payload(prices: list, timestamps: list = None, indicators: dict = None, title: str = None) -> dict
+
+##Description:##
+Creates a chart-friendly payload compatible with most front-end plotting libraries (e.g., Chart.js, Recharts).
+Includes ISO-formatted labels, price data, optional technical indicator overlays, and basic statistics.
+
+##Parameters:##
+Name	Type	Description
+prices	list	Historical prices in time order
+timestamps	list (optional)	Datetime objects matching prices length
+indicators	dict (optional)	Additional time-series overlays (SMA, EMA, RSI, etc.)
+title	str (optional)	Chart title
+
+##Returns:##
+dict — containing:
+labels — ISO datetimes or numeric indices
+datasets — primary price line + optional indicator lines
+meta — { min, max, avg } statistics
+title — provided or default label
+
+##Raises:##
+ValueError if prices list is empty
+ValueError if timestamps length does not match prices
+
