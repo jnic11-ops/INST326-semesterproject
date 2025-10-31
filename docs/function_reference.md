@@ -191,8 +191,95 @@ Interprets user-provided parameters (from a web UI, CLI, or config file) and con
 }
 ```
 
+---
 
+### extract_domain(url: str) -> str
 
+**Description:**
+Extracts and returns the domain name from a given URL string. Strips protocol prefixes, subpaths,
+query parameters, and fragments. Useful for news source attribution and metadata tagging.
 
+**Parameters:**
+- url (str): Input URL string (e.g., "https://finance.yahoo.com/quote/AAPL").
 
+##Returns:##
+- str: The extracted domain (e.g., "yahoo.com").
+
+##Raises:##
+- ValueError: If the input is not a valid URL or is an empty string.
+
+##Example Usage:##
+```python
+ extract_domain("https://www.cnbc.com/markets")
+'cnbc.com'
+
+ extract_domain("http://news.bbc.co.uk/article?id=3")
+'bbc.co.uk'
+```
+
+---
+
+### detect_price_anomalies(df: pandas.DataFrame, threshold: float = 3.0) -> pandas.DataFrame
+
+##Description:##
+Identifies large or statistically unusual daily percentage price movements using a z-score threshold.
+
+##Parameters:##
+- df (DataFrame): Historical stock data containing a Close column
+- threshold (float): Z-score cutoff for anomaly detection (default 3.0)
+
+##Returns:##
+DataFrame: Rows where the daily percentage change magnitude exceeds the anomaly threshold.
+
+##Example Usage:##
+```python
+ anomalies = detect_price_anomalies(df, threshold=2.5)
+ anomalies.head()
+```
+
+---
+
+### calculate_technical_indicators(df: pandas.DataFrame) -> pandas.DataFrame
+
+##Description:##
+Appends technical trading signals to a stock price DataFrame.
+Includes SMA_20, EMA_20, RSI_14.
+
+##Parameters:##
+- df (DataFrame): Must include a numeric Close price column.
+
+##Returns:##
+DataFrame: Original dataset with additional indicator columns.
+
+##Example Usage:##
+```python
+ enriched = calculate_technical_indicators(df)
+ enriched[['Close', 'SMA_20', 'EMA_20', 'RSI_14']].tail()
+```
+
+---
+
+### export_report(data: dict, output_path: str, format: str = "txt") -> None
+
+##Description:##
+Generates and saves a structured summary report to disk.
+
+##Parameters:##
+- data (dict): Metrics, metadata, and computed statistics.
+- output_path (str): Destination file path.
+- format (str): "txt" or "md" (default "txt")
+
+##Returns:##
+None
+
+##Example Usage:##
+```python
+ summary = {
+     "ticker": "AAPL",
+     "avg_sentiment": 0.82,
+     "volatility_score": 1.41
+ }
+ export_report(summary, "reports/aapl_report.md", format="md")
+```
+---
 
