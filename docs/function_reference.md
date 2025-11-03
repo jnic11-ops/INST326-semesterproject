@@ -191,8 +191,146 @@ Interprets user-provided parameters (from a web UI, CLI, or config file) and con
 }
 ```
 
+---
 
+### extract_domain(url: str) -> str
 
+**Description:**
+Extracts and returns the domain name from a given URL string. Strips protocol prefixes, subpaths,
+query parameters, and fragments. Useful for news source attribution and metadata tagging.
 
+**Parameters:**
+- url (str): Input URL string (e.g., "https://finance.yahoo.com/quote/AAPL").
 
+##Returns:##
+- str: The extracted domain (e.g., "yahoo.com").
+
+##Raises:##
+- ValueError: If the input is not a valid URL or is an empty string.
+
+##Example Usage:##
+```python
+ extract_domain("https://www.cnbc.com/markets")
+'cnbc.com'
+
+ extract_domain("http://news.bbc.co.uk/article?id=3")
+'bbc.co.uk'
+```
+
+---
+
+### detect_price_anomalies(df: pandas.DataFrame, threshold: float = 3.0) -> pandas.DataFrame
+
+##Description:##
+Identifies large or statistically unusual daily percentage price movements using a z-score threshold.
+
+##Parameters:##
+- df (DataFrame): Historical stock data containing a Close column
+- threshold (float): Z-score cutoff for anomaly detection (default 3.0)
+
+##Returns:##
+DataFrame: Rows where the daily percentage change magnitude exceeds the anomaly threshold.
+
+##Example Usage:##
+```python
+ anomalies = detect_price_anomalies(df, threshold=2.5)
+ anomalies.head()
+```
+
+---
+
+### calculate_technical_indicators(df: pandas.DataFrame) -> pandas.DataFrame
+
+##Description:##
+Appends technical trading signals to a stock price DataFrame.
+Includes SMA_20, EMA_20, RSI_14.
+
+##Parameters:##
+- df (DataFrame): Must include a numeric Close price column.
+
+##Returns:##
+DataFrame: Original dataset with additional indicator columns.
+
+##Example Usage:##
+```python
+ enriched = calculate_technical_indicators(df)
+ enriched[['Close', 'SMA_20', 'EMA_20', 'RSI_14']].tail()
+```
+
+---
+
+### export_report(data: dict, output_path: str, format: str = "txt") -> None
+
+##Description:##
+Generates and saves a structured summary report to disk.
+
+##Parameters:##
+- data (dict): Metrics, metadata, and computed statistics.
+- output_path (str): Destination file path.
+- format (str): "txt" or "md" (default "txt")
+
+##Returns:##
+None
+
+##Example Usage:##
+```python
+ summary = {
+     "ticker": "AAPL",
+     "avg_sentiment": 0.82,
+     "volatility_score": 1.41
+ }
+ export_report(summary, "reports/aapl_report.md", format="md")
+```
+---
+
+### build_dashboard_summary(portfolio: dict, latest_prices: dict, news_items: list = None, alerts: list = None, max_news: int = 5) -> dict
+
+##Description:##
+Builds a compact, JSON-friendly dashboard data object summarizing the user’s portfolio.
+The result contains total portfolio value, per-position statistics, recent news items, and high-priority alerts.
+Useful for front-end dashboards, CLI summaries, and report modules.
+
+##Parameters:##
+Name	Type	Description
+portfolio	dict	A dictionary of positions containing shares and optionally buy_price
+latest_prices	dict	Mapping of tickers to most recent price values
+news_items	list (optional)	List of recent news objects containing titles, timestamps, sentiment, etc.
+alerts	list (optional)	A list of risk notices, warnings, or anomaly flags
+max_news	int	Number of news items to include
+
+##Returns:##
+dict — A JSON-serializable summary containing:
+total_value — aggregated value of all holdings
+positions — breakdown containing price, unrealized gains/losses, and allocation percentage
+recent_news — trimmed list of relevant news items
+top_alerts — at most 10 alerts for display
+
+##Raises:##
+ValueError if input types are invalid or max_news is negative
+
+---
+
+### prepare_chart_payload(prices: list, timestamps: list = None, indicators: dict = None, title: str = None) -> dict
+
+##Description:##
+Creates a chart-friendly payload compatible with most front-end plotting libraries (e.g., Chart.js, Recharts).
+Includes ISO-formatted labels, price data, optional technical indicator overlays, and basic statistics.
+
+##Parameters:##
+Name	Type	Description
+prices	list	Historical prices in time order
+timestamps	list (optional)	Datetime objects matching prices length
+indicators	dict (optional)	Additional time-series overlays (SMA, EMA, RSI, etc.)
+title	str (optional)	Chart title
+
+##Returns:##
+dict — containing:
+labels — ISO datetimes or numeric indices
+datasets — primary price line + optional indicator lines
+meta — { min, max, avg } statistics
+title — provided or default label
+
+##Raises:##
+ValueError if prices list is empty
+ValueError if timestamps length does not match prices
 
