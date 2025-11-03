@@ -86,17 +86,6 @@ This abstraction ensures flexibility — the same query system can serve multipl
 
 ---
 
-### Summary
-
-| **Class**            | **Purpose**                                  | **Integrated Functions**                                | **Inheritance Potential**                     |
-|----------------------|----------------------------------------------|--------------------------------------------------------|-----------------------------------------------|
-| `StockDataManager`   | Retrieve and validate market data/news       | `fetch_stock_data`, `fetch_news`, `validate_ticker`    | `CryptoDataManager`, `MockStockDataManager`   |
-| `DataProcessor`      | Clean and normalize textual/numerical data   | `normalize_date`, `clean_text`, `format_currency`      | `FinancialDataProcessor`, `TextDataProcessor` |
-| `PortfolioManager`   | Manage and parse portfolio files             | `parse_portfolio_csv`                                  | `AdvancedPortfolioManager`                    |
-| `UserQueryBuilder`   | Translate UI filters into structured queries | `build_user_query`                                     | `AdvancedQueryBuilder`, `DatabaseQueryBuilder` |
-
----
-
 ### Design Principles Summary
 
 - **Encapsulation:** Each class manages a single responsibility.  
