@@ -107,3 +107,5 @@ class StockDataManager:
 
     def __str__(self):
         return f"StockDataManager(api='{self._api}', last_ticker='{self._last_ticker}')"
+    
+    
