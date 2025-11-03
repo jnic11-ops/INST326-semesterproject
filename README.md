@@ -94,10 +94,16 @@ from src.utils.format\_currency import format\_currency
 
 print(format\_currency(1234.56))  # $1,234.56
 
+###### **sentiment_analysis(news_list: list[str])**
 
+from src.analysis.sentiment_analysis import sentiment_analysis
 
-
-
+news = [
+    "Apple stock surges after strong earnings report",
+    "Tesla shares fall as production slows"
+]
+print(sentiment_analysis(news))
+# Output example: {'Apple stock surges after strong earnings report': 'positive', 'Tesla shares fall as production slows': 'negative'}
 
 
 ###### **parse\_portfolio\_csv(file\_path: str)**
@@ -156,7 +162,7 @@ print(result)
 ###### **analysis**
 
 * \_\_init\_\_
-* sentiment\_analysis()
+* sentiment_analysis()
 * topic\_modeling()
 * detect\_price\_anomalies()
 * calculate\_technical\_indicators()
