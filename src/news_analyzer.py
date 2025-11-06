@@ -1,32 +1,40 @@
 """
 NewsAnalyzer class for fetching and analyzing news sentiment and keywords.
 
-Integrates functions from:
-- data_collection/fetch_news.py
+Integrates:
+- RSS/Atom feed fetching (via fetch_feed)
 - analysis/wordcloud_data.py
 - analysis/sentiment_analysis.py
 """
 
-from src.data_collection.fetch_news import fetch_news
+import feedparser
 from src.analysis.wordcloud_data import generate_wordcloud_data
 from src.analysis.sentiment_analysis import sentiment_analysis
+
+
+def fetch_feed(url: str):
+    """Utility function to fetch and parse an RSS/Atom feed."""
+    return feedparser.parse(url)
 
 
 class NewsAnalyzer:
     """Handles retrieval, sentiment analysis, and keyword extraction from stock-related news."""
 
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str = None):
         """
         Initialize a NewsAnalyzer instance.
 
         Args:
-            api_key (str): API key for news retrieval.
+            api_key (str, optional): API key for news retrieval. Default None if using feeds.
         """
         self._api_key = api_key
         self._articles = []
         self._sentiments = []
         self._keywords = {}
 
+    # -----------------------------
+    # Properties
+    # -----------------------------
     @property
     def articles(self):
         """list[dict]: Get stored articles."""
@@ -37,29 +45,77 @@ class NewsAnalyzer:
         """dict: Get extracted keyword frequencies."""
         return self._keywords
 
-    def fetch(self, ticker: str):
-        """Fetch recent news articles related to a given stock ticker."""
-        print(f"Fetching news for {ticker}...")
-        self._articles = fetch_news(ticker, self._api_key)
-        if not self._articles:
-            raise RuntimeError(f"No news found for {ticker}")
+    # -----------------------------
+    # Private feed fetcher
+    # -----------------------------
+    def _fetch_from_feed(self, feed_url: str):
+        """Fetch articles from an RSS/Atom feed URL."""
+        parsed = fetch_feed(feed_url)
+        articles = []
+        for entry in parsed.entries:
+            articles.append({
+                "title": entry.get("title"),
+                "description": entry.get("description", ""),
+                "published_at": entry.get("published", ""),
+                "source": feed_url,
+                "url": entry.get("link", "")
+            })
+        return articles
 
+    # -----------------------------
+    # Public fetch
+    # -----------------------------
+    def fetch(self, ticker: str, feed_urls: list[str]):
+        """
+        Fetch recent news articles from multiple feeds for a given stock ticker.
+
+        Args:
+            ticker (str): Stock ticker symbol.
+            feed_urls (list[str]): List of RSS/Atom feed URLs to fetch from.
+        """
+        all_articles = []
+        for url in feed_urls:
+            all_articles.extend(self._fetch_from_feed(url))
+        if not all_articles:
+            raise RuntimeError(f"No news found for {ticker}")
+        self._articles = all_articles
+
+    # -----------------------------
+    # Sentiment Analysis
+    # -----------------------------
     def analyze_sentiment(self):
-        """Perform sentiment analysis on the fetched news."""
+        """
+        Perform sentiment analysis on the fetched news articles.
+
+        Returns:
+            list[dict]: Articles enriched with sentiment_score and sentiment_label.
+        """
         if not self._articles:
             raise RuntimeError("No news articles loaded. Run fetch() first.")
         self._sentiments = sentiment_analysis(self._articles)
         return self._sentiments
 
+    # -----------------------------
+    # Keyword Extraction
+    # -----------------------------
     def extract_keywords(self):
-        """Generate a word frequency dictionary for visualization."""
+        """
+        Generate a word frequency dictionary for visualization.
+
+        Returns:
+            dict: Mapping of top keywords to their frequency counts.
+        """
         if not self._articles:
             raise RuntimeError("No news articles loaded. Run fetch() first.")
         self._keywords = generate_wordcloud_data(self._articles)
         return self._keywords
 
+    # -----------------------------
+    # Representations
+    # -----------------------------
     def __str__(self):
         return f"NewsAnalyzer with {len(self._articles)} articles"
 
     def __repr__(self):
         return f"NewsAnalyzer(api_key='***hidden***')"
+
