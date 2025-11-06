@@ -7,19 +7,53 @@ import re
 class StockDataManager:
     """
     Manages fetching and validating stock data and related news from external APIs.
+
+    Example:
+        >>> manager = StockDataManager(api="yahoo")
+        >>> df = manager.fetch_stock_data("AAPL", "2024-01-01", "2024-05-01")
+        >>> print(df.head())
     """
 
     def __init__(self, api: str = "yahoo"):
+        """
+        Initialize StockDataManager with an API source.
+
+        Args:
+            api (str): The API to use for data retrieval (currently only 'yahoo' supported).
+
+        Raises:
+            ValueError: If the API is not supported.
+        """
         if api.lower() not in ["yahoo"]:
             raise ValueError("Currently only 'yahoo' API is supported.")
         self._api = api.lower()
         self._last_ticker = None
 
     # ------------------------------------------------
+    # Encapsulated Properties
+    # ------------------------------------------------
+    @property
+    def api(self):
+        """Return the active API source."""
+        return self._api
+
+    @property
+    def last_ticker(self):
+        """Return the most recently validated ticker."""
+        return self._last_ticker
+
+    # ------------------------------------------------
     # Ticker validation
     # ------------------------------------------------
     def validate_ticker(self, ticker: str) -> bool:
-        """Validate a stock ticker symbol (1-7 chars, uppercase, dot/dash allowed)."""
+        """
+        Validate a stock ticker symbol (1–7 uppercase characters, dot/dash allowed).
+
+        Example:
+            >>> manager = StockDataManager()
+            >>> manager.validate_ticker("AAPL")
+            True
+        """
         pattern = r"^[A-Z0-9.-]{1,7}$"
         valid = bool(re.match(pattern, ticker))
         if valid:
@@ -30,7 +64,22 @@ class StockDataManager:
     # Fetch stock data
     # ------------------------------------------------
     def fetch_stock_data(self, ticker: str, start: str, end: str) -> pd.DataFrame:
-        """Fetch OHLCV data for a given ticker using yfinance."""
+        """
+        Fetch OHLCV data for a given ticker using yfinance.
+
+        Args:
+            ticker (str): Stock symbol.
+            start (str): Start date in 'YYYY-MM-DD'.
+            end (str): End date in 'YYYY-MM-DD'.
+
+        Returns:
+            pd.DataFrame: DataFrame with ['Date', 'Open', 'High', 'Low', 'Close', 'Volume'].
+
+        Example:
+            >>> manager = StockDataManager()
+            >>> df = manager.fetch_stock_data("AAPL", "2024-01-01", "2024-05-01")
+            >>> print(df.head())
+        """
         if not self.validate_ticker(ticker):
             raise ValueError(f"Invalid ticker: {ticker}")
 
@@ -45,11 +94,10 @@ class StockDataManager:
 
         data.reset_index(inplace=True)
         data = data[["Date", "Open", "High", "Low", "Close", "Volume"]]
-
         return data
 
     # ------------------------------------------------
-    # Fetch news for a ticker (refactored function)
+    # Fetch news for a ticker
     # ------------------------------------------------
     def fetch_news(self, ticker, providers, cleaner=None, limit=None):
         """
@@ -63,6 +111,15 @@ class StockDataManager:
 
         Returns:
             list: Sorted list of normalized news items.
+
+        Example:
+            >>> def provider(t):
+            ...     return [{"id": "1", "published_at": "2025-11-03T12:00:00Z",
+            ...              "source": "example.com", "title": "Market update", "url": "https://example.com"}]
+            >>> manager = StockDataManager()
+            >>> news = manager.fetch_news("AAPL", [provider])
+            >>> print(news[0]["title"])
+            Market update
         """
         if not isinstance(ticker, str):
             raise TypeError("ticker must be a string")
@@ -78,16 +135,13 @@ class StockDataManager:
             batch = prov(ticker)
             if batch:
                 for item in batch:
-                    # Validate required keys
                     for key in ["id", "published_at", "source", "title", "url"]:
                         if key not in item:
                             raise KeyError(f"Missing required key in news item: {key}")
 
-                    # Normalize ticker
                     if "ticker" not in item or item["ticker"] is None:
                         item["ticker"] = ticker
 
-                    # Clean text
                     if cleaner is not None:
                         title = item.get("title", "") or ""
                         summary = item.get("summary", "") or ""
@@ -105,7 +159,12 @@ class StockDataManager:
 
         return collected
 
+    # ------------------------------------------------
+    # String Representations
+    # ------------------------------------------------
     def __str__(self):
         return f"StockDataManager(api='{self._api}', last_ticker='{self._last_ticker}')"
-    
-    
+
+    def __repr__(self):
+        return f"StockDataManager(api={self._api!r}, last_ticker={self._last_ticker!r})"
+
