@@ -81,6 +81,18 @@ for v in values:
     print(f"Original: {v} -> Formatted: {formatted}")
 
 ```
+### log_metadata(source: str, params: dict)
+Create a standardized metadata entry for API calls or data retrieval.
+
+```python
+metadata = {
+        "timestamp": datetime.now().isoformat(),
+        "source": source,
+        "parameters": params
+    }
+
+    return metadata
+```
 
 ## 2. Data Collection 
 
@@ -115,6 +127,60 @@ from src.data_collection.parse_portfolio_csv import parse_portfolio_csv
 portfolio = parse_portfolio_csv("portfolio.csv")
 print(portfolio)
 
+```
+
+### fetch_news(ticker, providers, cleaner=None, limit=None)
+Fetch and normalize news items for a ticker from one or more providers (no imports)
+
+```python
+if not isinstance(ticker, str):
+        raise TypeError("ticker must be a string")
+    if not isinstance(providers, (list, tuple)) or not all(callable(p) for p in providers):
+        raise TypeError("providers must be a list/tuple of callables")
+    if limit is not None and not isinstance(limit, int):
+        raise TypeError("limit must be an int or None")
+    if cleaner is not None and not callable(cleaner):
+        raise TypeError("cleaner must be callable or None")
+
+    collected = []
+    for prov in providers:
+        batch = prov(ticker)
+        if batch:
+            for item in batch:
+                # Validate required keys
+                if "id" not in item:
+                    raise KeyError("Missing required key in news item: id")
+                if "published_at" not in item:
+                    raise KeyError("Missing required key in news item: published_at")
+                if "source" not in item:
+                    raise KeyError("Missing required key in news item: source")
+                if "title" not in item:
+                    raise KeyError("Missing required key in news item: title")
+                if "url" not in item:
+                    raise KeyError("Missing required key in news item: url")
+
+                # Normalize ticker
+                if "ticker" not in item or item["ticker"] is None:
+                    item["ticker"] = ticker
+
+                # Build cleaned_text
+                if cleaner is not None:
+                    title = item.get("title", "") or ""
+                    summary = item.get("summary", "") or ""
+                    item["cleaned_text"] = cleaner((title + " " + summary).strip())
+
+                collected.append(item)
+
+    if not collected:
+        raise ValueError("No news data returned by providers")
+
+    # Sort by time in ascending order
+    collected.sort(key=lambda r: r["published_at"])
+
+    if isinstance(limit, int) and limit > 0:
+        collected = collected[-limit:]
+
+    return collected
 ```
 ## 3. Interface
 
@@ -249,7 +315,76 @@ else:
     for a in alerts:
         print(a)
 ```
+### sentiment_analysis(news_articles: list[dict]) -> list[dict]
+Perform simple sentiment analysis using word matching.
 
+```python
+ positive_words = {"gain", "rise", "growth", "profit", "strong", "optimistic", "success", "increase", "up"}
+    negative_words = {"loss", "drop", "fall", "decline", "weak", "fear", "down", "crash", "negative"}
+
+    analyzed = []
+
+    for article in news_articles:
+        text = (article.get("title") or article.get("description") or "").lower()
+        score = 0
+
+        for word in positive_words:
+            if word in text:
+                score += 1
+        for word in negative_words:
+            if word in text:
+                score -= 1
+
+        # Label sentiment
+        if score > 0:
+            label = "positive"
+        elif score < 0:
+            label = "negative"
+        else:
+            label = "neutral"
+
+        enriched = article.copy()
+        enriched["sentiment_score"] = score
+        enriched["sentiment_label"] = label
+        analyzed.append(enriched)
+
+    return analyzed
+```
+### generate_wordcloud_data(news_list: list[dict]) -> dict
+Extract top keywords and their frequencies from a list of news articles.
+
+```python
+all_text = ""
+
+    # Combine titles and descriptions
+    for article in news_list:
+        text = (article.get("title", "") + " " + article.get("description", "")).lower()
+        all_text += " " + text
+
+    # Remove non-alphabetic characters
+    words = re.findall(r'\b[a-z]{3,}\b', all_text)  # only alphabetic words length >= 3
+
+    # Count word frequency
+    word_counts = Counter(words)
+
+    # Return top 30 keywords
+    return dict(word_counts.most_common(30))
+
+#test
+# Simulated multiple news articles
+news_list = [
+    {"title": "Apple stock rises as new iPhone impresses investors"},
+    {"title": "Tech stocks fall slightly after strong gains"},
+    {"title": "Apple launches new product lineup amid market optimism"},
+    {"title": "Investors optimistic as Apple stock reaches record high"}
+]
+
+# Run the function
+result = generate_wordcloud_data(news_list)
+
+# Display results
+print(result)
+```
 
 ## Reporting
 
@@ -282,4 +417,29 @@ try:
 except ValueError as e:
     print(f"Export failed: {e}")
 ```
+### generate_summary_table(portfolio_data)
+Generate a summary table of portfolio performance statistics.
 
+```python
+if not isinstance(portfolio_data, list) or not all(isinstance(d, dict) for d in portfolio_data):
+        raise TypeError("portfolio_data must be a list of dictionaries")
+
+    summary = []
+    for stock in portfolio_data:
+        try:
+            score = round(stock["avg_sentiment"] + (stock["price_change"] / 100), 2)
+            category = (
+                "Strong Positive" if score > 0.5 else
+                "Neutral" if -0.5 <= score <= 0.5 else
+                "Negative"
+            )
+            summary.append({
+                "ticker": stock["ticker"],
+                "score": score,
+                "category": category
+            })
+        except KeyError as e:
+            raise KeyError(f"Missing required key in portfolio data: {e.args[0]}")
+
+    return sorted(summary, key=lambda x: x["score"], reverse=True)
+```
