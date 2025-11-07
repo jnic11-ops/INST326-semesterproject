@@ -57,10 +57,11 @@ Provides easy access to normalized data for tracking, analytics, or visualizatio
 
 **Integrated Functions:**  
 - `parse_portfolio_csv`
+- `_load_portfolio`
 
 **Design Decisions:**  
-This class isolates portfolio management responsibilities, ensuring proper schema handling and consistent error reporting.  
-By decoupling this logic, portfolio data can be reused across analytical, reporting, or UI modules without code duplication.
+Separates file parsing and validation for clarity and reusability.
+Provides a consistent interface for downstream analytics, such as performance evaluation or visualization.
 
 **Future Inheritance Potential:**  
 - `AdvancedPortfolioManager` – adds brokerage integration and real-time updates.  
@@ -83,6 +84,47 @@ This abstraction ensures flexibility — the same query system can serve multipl
 **Future Inheritance Potential:**  
 - `AdvancedQueryBuilder` – integrates natural language interpretation for human-friendly input.  
 - `DatabaseQueryBuilder` – generates structured SQL/NoSQL queries for backend systems.
+
+---
+
+## **5. StockAnalyzer**
+
+**Purpose:**  
+Performs analytical computations on stock data, including technical indicators and anomaly detection. Supports operations like Simple Moving Average (SMA), Relative Strength Index (RSI), and volatility-based anomaly detection.  
+
+**Integrated Functions:**  
+- `_simple_moving_average`
+- `_calculate_rsi`
+- `_detect_price_anomalies`
+- `calculate_sma`
+- `calculate_rsi`
+- `detect_anomalies`
+
+**Design Decisions:**  
+Encapsulates all analytical logic to keep mathematical computations separate from data retrieval and presentation.
+Maintains extensibility for adding future analytics like MACD, Bollinger Bands, or custom indicators.
+
+**Future Inheritance Potential:**  
+- `AdvancedStockAnalyzer` – integrates multi-factor analysis and ML-driven forecasting.  
+- `SentimentsStockAnalyzer` – merges technical and news sentiment signals.
+
+---
+
+## **6. NewsAnalyzer **
+
+**Purpose:**  
+Analyzes financial news articles for sentiment and relevance to a given ticker or portfolio. Integrates text processing with DataProcessor.  
+
+**Integrated Functions:**  
+- `analyze_sentiment`
+- `summarize_articles`
+
+**Design Decisions:**  
+Bridges unstructured text data with structured financial signals, enabling correlation between sentiment and market performance.
+
+**Future Inheritance Potential:**  
+- `AdvancedStockAnalyzer` – integrates multi-factor analysis and ML-driven forecasting.  
+- `SentimentsStockAnalyzer` – merges technical and news sentiment signals.
 
 ---
 
