@@ -73,9 +73,13 @@ Provides a consistent interface for downstream analytics, such as performance ev
 
 **Purpose:**  
 Interprets user input from the interface (e.g., ticker, date range, sentiment filter) and converts it into structured, machine-readable queries for APIs or databases.
+Prepare a JSON-serializable payload for frontend charting libraries.
+Build a compact dashboard summary for the frontend.
 
 **Integrated Functions:**  
 - `build_user_query`
+- `prepare_chart_payload`
+- `build_dashboard_summary`
 
 **Design Decisions:**  
 Centralizes user interaction and parameter translation logic.  
