@@ -1,0 +1,116 @@
+"""
+Stock Entity Class
+
+This class represents a single stock and uses StockDataManager
+to retrieve, store, and analyze its historical data.
+
+Integrates:
+- StockDataManager (for fetching and validating data)
+- DataProcessor (for potential text cleaning, normalization, etc.)
+"""
+
+import pandas as pd
+from datetime import datetime
+from src.stock_data_manager import StockDataManager
+
+
+class Stock:
+    """
+    Represents a stock entity with associated data and metadata.
+
+    Example:
+        >>> from src.stock_entity import Stock
+        >>> apple = Stock("AAPL")
+        >>> apple.load_data("2024-01-01", "2024-05-01")
+        >>> print(apple.data.head())
+    """
+
+    def __init__(self, ticker: str):
+        """
+        Initialize a Stock instance.
+
+        Args:
+            ticker (str): Stock ticker symbol (e.g., 'AAPL').
+
+        Raises:
+            ValueError: If ticker is invalid according to StockDataManager.
+        """
+        self._manager = StockDataManager()
+        if not self._manager.validate_ticker(ticker):
+            raise ValueError(f"Invalid ticker: {ticker}")
+
+        self._ticker = ticker.upper()
+        self._data = pd.DataFrame()
+        self._last_updated = None
+
+    # ------------------------------------------------
+    # Properties (Encapsulation)
+    # ------------------------------------------------
+    @property
+    def ticker(self) -> str:
+        """Return the stock ticker symbol."""
+        return self._ticker
+
+    @property
+    def data(self) -> pd.DataFrame:
+        """Return the current stock data."""
+        return self._data
+
+    @property
+    def last_updated(self):
+        """Return the last update timestamp."""
+        return self._last_updated
+
+    # ------------------------------------------------
+    # Core Methods
+    # ------------------------------------------------
+    def load_data(self, start: str, end: str) -> pd.DataFrame:
+        """
+        Fetch and store stock data for the given date range.
+
+        Args:
+            start (str): Start date (YYYY-MM-DD).
+            end (str): End date (YYYY-MM-DD).
+
+        Returns:
+            pd.DataFrame: Retrieved OHLCV data.
+        """
+        self._data = self._manager.fetch_stock_data(self._ticker, start, end)
+        self._last_updated = datetime.now()
+        return self._data
+
+    def get_summary(self) -> dict:
+        """
+        Return a quick summary of the stock data.
+
+        Returns:
+            dict: Summary with ticker, record count, and last update.
+        """
+        return {
+            "ticker": self._ticker,
+            "records": len(self._data),
+            "last_updated": self._last_updated.strftime("%Y-%m-%d %H:%M:%S")
+            if self._last_updated else "Not loaded"
+        }
+
+    # ------------------------------------------------
+    # String Representations
+    # ------------------------------------------------
+    def __str__(self):
+        return f"Stock({self._ticker}) with {len(self._data)} records"
+
+    def __repr__(self):
+        return f"Stock(ticker='{self._ticker}')"
+    
+
+# Create stock entity
+apple = Stock("AAPL")
+
+# Fetch historical data
+apple.load_data("2024-01-01", "2024-06-01")
+
+# View summary
+print(apple.get_summary())
+
+# Print dataframe
+print(apple.data.head())
