@@ -111,6 +111,24 @@ class StockAnalyzer:
         prices = self._data["Close"].tolist()
         return self._detect_price_anomalies(prices, threshold)
 
+    def summarize(self) -> dict:
+        """
+        Polymorphic summary for StockAnalyzer.
+
+        Returns:
+            dict: Summary information for dashboard-style views.
+        """
+        close = self._data["Close"]
+
+        return {
+            "type": "stock",
+            "ticker": self._ticker,
+            "records": int(len(close)),
+            "latest_close": float(close.iloc[-1]),
+            "mean_close": float(close.mean()),
+            "volatility": float(close.std(ddof=0)),
+        }
+
     # ------------------------------------------------
     # Representations
     # ------------------------------------------------
