@@ -32,37 +32,6 @@ class NewsAnalyzer:
         self._sentiments = []
         self._keywords = {}
         
-    def summarize(self) -> dict:
-        """
-        Polymorphic summary for NewsAnalyzer.
-
-        Returns:
-            dict: Summary of news coverage, sentiment, and keywords.
-        """
-        article_count = len(self._articles)
-
-        avg_sentiment = None
-        if self._sentiments:
-            avg_sentiment = sum(self._sentiments) / len(self._sentiments)
-
-        top_keywords = []
-        if self._keywords:
-            # take top 5 keywords by frequency
-            sorted_items = sorted(
-                self._keywords.items(),
-                key=lambda kv: kv[1],
-                reverse=True
-            )
-            top_keywords = [word for word, _ in sorted_items[:5]]
-
-        return {
-            "type": "news",
-            "article_count": article_count,
-            "avg_sentiment": avg_sentiment,
-            "top_keywords": top_keywords,
-        }
-
-
     # -----------------------------
     # Properties
     # -----------------------------
