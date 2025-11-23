@@ -4,6 +4,7 @@ class DashboardQueryBuilder(BaseQueryBuilder):
     """Builds queries automatically for dashboard displays."""
 
     def build_query(self, params: dict):
+        clean_params = super().validate(params)
         # Example: dashboard gets broader/default queries
         return {
             "ticker": params.get("ticker", "SPY"),
