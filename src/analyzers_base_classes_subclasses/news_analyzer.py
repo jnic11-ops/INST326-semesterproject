@@ -3,7 +3,7 @@ from base_analyzer import BaseAnalyzer
 
 class NewsAnalyzer(BaseAnalyzer):
     def __init__(self, data_manager):
-        self.data_manager = data_manager
+        super().__init__(data_manager)
 
     def analyze(self):
         articles = self.data_manager.fetch_data(["http://feed1.com"])
