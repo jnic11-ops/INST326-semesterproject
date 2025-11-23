@@ -1,16 +1,21 @@
 from abc import ABC, abstractmethod
 
+
 class BaseDataManager(ABC):
     """
-    Abstract base class for all data managers in the system.
-    Defines the required interface for fetching data from any source.
+    Abstract base class for all data managers.
     """
+
+
+    def __init__(self):
+        self.source = "Base Manager"
+
 
     @abstractmethod
     def fetch_data(self, query):
         """
-        Abstract method all subclasses must override.
-        Each subclass fetches data from its own source (API, file, news, etc.)
+        Abstract method all subclasses must implement.
         """
         pass
+
 
