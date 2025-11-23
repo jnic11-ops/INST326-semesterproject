@@ -2,9 +2,10 @@
 from abc import ABC, abstractmethod
 
 class BaseAnalyzer(ABC):
-    """Abstract base for all analyzers."""
+    def __init__(self):
+        super().__init__()  # optional, harmless
 
     @abstractmethod
     def analyze(self):
-        """Perform analysis and return results."""
         pass
+
