@@ -1,5 +1,6 @@
 import csv
 import os
+from stock_data_manager import StockDataManager
 
 class PortfolioManager:
     """
@@ -11,6 +12,8 @@ class PortfolioManager:
             raise FileNotFoundError(f"File not found: {file_path}")
         self._file_path = file_path
         self._portfolio = self._load_portfolio()  # main loading method
+        # Composition: PortfolioManager "has a" StockDataManager
+        self._data_manager = data_manager or StockDataManager()
 
     @property
     def portfolio(self):
@@ -46,6 +49,29 @@ class PortfolioManager:
             "total_cost_basis": total_cost_basis,
             "average_buy_price": avg_buy_price,
         }
+        
+    def compute_total_value(self, start_date: str, end_date: str) -> float:
+        """
+        Use the composed StockDataManager to compute the total portfolio value
+        over a given date range based on the latest available close price.
+
+        This method demonstrates composition in action.
+        """
+        total = 0.0
+        for ticker, info in self._portfolio.items():
+            shares = float(info.get("shares", 0))
+            if shares <= 0:
+                continue
+
+            df = self._data_manager.fetch_stock_data(ticker, start_date, end_date)
+            if df is None or df.empty:
+                continue
+
+            latest_close = float(df["Close"].iloc[-1])
+            total += shares * latest_close
+
+        return total
+
 
 
     # ------------------------------------------------
