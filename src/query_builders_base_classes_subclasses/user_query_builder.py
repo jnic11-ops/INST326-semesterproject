@@ -4,6 +4,8 @@ class UserQueryBuilder(BaseQueryBuilder):
     """Builds queries based on direct user input."""
 
     def build_query(self, params: dict):
+        clean_params = super().validate(params)
+        
         return {
             "ticker": params.get("ticker"),
             "start_date": params.get("start_date"),
