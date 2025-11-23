@@ -1,28 +1,104 @@
-from managers_base_classes_subclasses.stock_data_manager import StockDataManager
-from managers_base_classes_subclasses.news_data_manager import NewsDataManager
-from managers_base_classes_subclasses.portfolio_data_manager import PortfolioDataManager
+# polymorphism_demo.py
+
+from analyzers_base_classes_subclasses.news_analyzer import NewsAnalyzer
+from analyzers_base_classes_subclasses.stock_analyzer import StockAnalyzer
+
+from query_builders_base_classes_subclasses.dashboard_query_builder import DashboardQueryBuilder
+from query_builders_base_classes_subclasses.user_query_builder import UserQueryBuilder
+
+from processors_base_classes_subclasses.currency_processor import CurrencyProcessor
+from processors_base_classes_subclasses.date_processor import DateProcessor
+from processors_base_classes_subclasses.text_processor import TextProcessor
 
 
-def demo():
-    # List of subclasses sharing the same interface (polymorphism)
-    managers = [
-        StockDataManager(),
-        NewsDataManager(api_key="YOUR_API_KEY"),
-        PortfolioDataManager()
+# -------------------------------
+# 1. Polymorphism – Analyzer Hierarchy
+# -------------------------------
+
+def run_analysis(analyzer):
+    """
+    Demonstrates polymorphism: this function only knows about the base type.
+    It calls analyze(), but each subclass behaves differently.
+    """
+    return analyzer.analyze()
+
+
+def demo_analyzers(data_manager):
+    analyzers = [
+        NewsAnalyzer(data_manager),
+        StockAnalyzer("AAPL", data_manager),
     ]
 
-    print("\nDemonstrating polymorphism:\n")
+    for a in analyzers:
+        result = run_analysis(a)
+        print(f"{a.__class__.__name__} -> {result}")
 
-    # Each object responds to fetch_data() in its own way
-    for manager in managers:
-        try:
-            result = manager.fetch_data("AAPL")  # Polymorphic call
-            print(f"{manager.__class__.__name__} returned type: {type(result)}")
-        except Exception as e:
-            print(f"{manager.__class__.__name__} raised error: {e}")
 
+# -------------------------------
+# 2. Polymorphism – Query Builder Hierarchy
+# -------------------------------
+
+def build_query(builder, ticker):
+    """Calls the same method on different subclasses."""
+    params = {"ticker": ticker}
+    return builder.build_query(params)
+
+
+def demo_query_builders():
+    builders = [
+        DashboardQueryBuilder(),
+        UserQueryBuilder(),
+    ]
+
+    for b in builders:
+        q = build_query(b, "AAPL")
+        print(f"{b.__class__.__name__} -> {q}")
+
+
+# -------------------------------
+# 3. Polymorphism – Processor Hierarchy
+# -------------------------------
+
+def demo_processors():
+    processors = [
+        CurrencyProcessor(),
+        DateProcessor(),
+        TextProcessor(),
+    ]
+
+    samples = [
+        1234.56,              # For CurrencyProcessor
+        "2024-05-11",         # For DateProcessor
+        "<p>Hello World!</p>" # For TextProcessor
+    ]
+
+    for p, value in zip(processors, samples):
+        result = p.process(value)
+        print(f"{p.__class__.__name__} -> {result}")
+
+
+# -------------------------------
+# Run all demos
+# -------------------------------
 
 if __name__ == "__main__":
-    demo()
+    class DummyDataManager:
+        """
+        A minimal stand-in so analyzers can run their polymorphic behavior
+        without requiring the real data managers.
+        """
+        def fetch_data(self, q):
+            return {}
+        def process_data(self, q):
+            return {}
 
+    data_manager = DummyDataManager()
 
+    print("\n--- Analyzer Polymorphism ---")
+    demo_analyzers(data_manager)
+
+    print("\n--- Query Builder Polymorphism ---")
+    demo_query_builders()
+
+    print("\n--- Processor Polymorphism ---")
+    demo_processors()
