@@ -19,36 +19,6 @@ class PortfolioManager:
     def portfolio(self):
         """Return the loaded portfolio dictionary."""
         return self._portfolio
-
-    def summarize(self) -> dict:
-        """
-        Polymorphic summary for PortfolioManager.
-
-        Returns:
-            dict: Basic metrics about the portfolio loaded from file.
-        """
-        num_positions = len(self._portfolio)
-        total_shares = 0.0
-        total_cost_basis = 0.0
-
-        for ticker, position in self._portfolio.items():
-            shares = float(position.get("shares", 0.0))
-            buy_price = float(position.get("buy_price", 0.0))
-            total_shares += shares
-            total_cost_basis += shares * buy_price
-
-        avg_buy_price = None
-        if total_shares > 0:
-            avg_buy_price = total_cost_basis / total_shares
-
-        return {
-            "type": "portfolio",
-            "file_path": self._file_path,
-            "positions": num_positions,
-            "total_shares": total_shares,
-            "total_cost_basis": total_cost_basis,
-            "average_buy_price": avg_buy_price,
-        }
         
     def compute_total_value(self, start_date: str, end_date: str) -> float:
         """
