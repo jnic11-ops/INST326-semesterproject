@@ -1,6 +1,6 @@
 This document demonstrates how to use the Stock Market Data & News Analysis System with examples highlighting inheritance, polymorphism, and composition.
 
-#### **1. Data Processors (Polymorphism)**
+### **1. Data Processors (Polymorphism)**
 
 All processors inherit from BaseProcessor and implement process() differently.
 ```python
@@ -36,7 +36,7 @@ CurrencyProcessor -> $1,234.56
 ```
 Polymorphism: same process() call, different behavior depending on subclass.
 
-#### **2. Analyzers (Polymorphism)**
+### **2. Analyzers (Polymorphism)**
 
 Both NewsAnalyzer and StockAnalyzer inherit from BaseAnalyzer. They implement analyze() differently.
 ```python
@@ -67,7 +67,7 @@ StockAnalyzer -> {'trend': 'up', 'volatility': 0.02}
 ```
 Polymorphism: same analyze() interface, different implementations.
 
-#### **3. Query Builders (Polymorphism)**
+### **3. Query Builders (Polymorphism)**
 
 All query builders inherit from BaseQueryBuilder and implement build_query().
 ```python
@@ -92,7 +92,7 @@ UserQueryBuilder -> {'ticker': 'AAPL', 'filters': None, 'include_history': False
 ```
 Polymorphism: same build_query() method, different subclass behaviors.
 
-#### **4. PortfolioManager (Composition)**
+### **4. PortfolioManager (Composition)**
 
 PortfolioManager contains instances of StockDataManager and optionally other processors or analyzers.
 ```python
@@ -108,7 +108,7 @@ print(f"Total Portfolio Value: ${total_value:,.2f}")
 ```
 Composition: PortfolioManager "has-a" StockDataManager instead of inheriting.
 
-#### **5. Combined Example (Polymorphic Workflow)**
+### **5. Combined Example (Polymorphic Workflow)**
 ```python
 # Demonstrate polymorphic analysis on a portfolio
 portfolio_analyzers = [
