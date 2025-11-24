@@ -1,260 +1,242 @@
-INST326 Semester Project 
+# Stock Market Data & News Analysis System — Project 3
 
-Project 01: Function Library
-
-Dedicated access Alpha Vantage API Key: DY8T5FSL5F1QV5N7
-
+INST326: Object-Oriented Programming for Information Science
+Advanced OOP with Inheritance & Polymorphism
 
 
+### **Project Overview**
+This system is a comprehensive financial data and news analysis platform demonstrating advanced object-oriented programming principles, including:
+* Inheritance hierarchies with abstract base classes
+* Polymorphic behavior across analyzers, processors, and query builders
+* Composition relationships in portfolio management
+* Scalable and modular architecture for extensibility
 
-
-# Stock Market Data \& News Analysis System
-
-#### **Project Description**
-
-Our project will be an information retrieval and analysis tool focused on collecting current stock information, such as prices and trends, as well as current news regarding those stocks. This project is a comprehensive stock market information platform that integrates financial APIs (Alpha Vantage, IEX Cloud) and news APIs (NewsAPI, Bing News, RSS feeds) to collect, process, analyze, and visualize stock data and related news sentiment. 
-
-
-
-The system provides:
-
-* Real-time \& historical stock market data
-* Financial news sentiment and topic analysis
-* Portfolio tracking with user-uploaded data 
-* Trend detection \& anomaly analysis
-* Interactive dashboards for stock/news insights
+The platform collects and analyzes:
+* Real-time & historical stock market data
+* Financial news sentiment and topics
+* Portfolio tracking from user-uploaded data
+* Trend detection and anomaly detection
 * Exportable reports (PDF, CSV, JSON)
-* Keyword frequency data for visualization (word clouds) from financial news articles
+* Keyword frequency for visualizations (e.g., word clouds)
 
+### **System Architecture**
 
+#### **Inheritance Hierachies**
 
+Data Processors
+```python
+BaseDataManager (ABC)
+├── StockDataManager
+├── NewsDataManager
+└── PortfolioDataManager
+```
+* Rationale: Enforces a fetch_data() interface; allows interchangeable data managers.
 
-#### **Team Members \& Roles**
+Query Builders
+```python
+BaseQueryBuilder (ABC)
+├── UserQueryBuilder
+└── DashboardQueryBuilder
+```
+* Rationale: Abstract build_query() method ensures all query builders have consistent behavior.
 
-* Matthew Daniel -- Data Base Researcher/Graphical Output Designer 
-* Jacob Nicholson -- Project Coordinator
-* Ray Dickscheid -- Documentation Manager
-* Dorian Mkam -- User Interface Designer
+#### **Composition Relationships**
+PortfolioManager
+* Has-a StockDataManager
+* Has-a NewsAnalyzer
+* Has-a BaseProcessor subclasses (optional)
 
+Explanation: PortfolioManager coordinates multiple objects rather than inheriting from them, following the single responsibility principle.
 
+### **Key Features**
 
+#### ** 1. Polymorphic Behavior**
 
+Same method calls produce different results based on object type:
 
-#### **Domain Focus \& Problem Statement**
+* analyze() → NewsAnalyzer vs. StockAnalyzer
+* process() → TextProcessor vs. DateProcessor vs. CurrencyProcessor
+* build_query() → DashboardQueryBuilder vs. UserQueryBuilder
 
-**Domain**: Information Retrieval and Analysis Tool
+Example: Analyzer Polymorphism
+```python
+from analyzers_base_classes_subclasses import NewsAnalyzer, StockAnalyzer
 
+analyzers = [NewsAnalyzer(data_manager), StockAnalyzer("AAPL", data_manager)]
+for a in analyzers:
+    print(f"{a.__class__.__name__} -> {a.analyze()}")
+```
 
+#### ** 2. Abstract Base Classes**
 
-**Problem**: Many new investors who lack experience or financial literacy struggle with decision-making due to information overload from fragmented data sources(news sites, market analysis, social media, financial statements). This information is scattered, overwhelming, and often unclear. We aim to develop a system that centralizes financial data, news sentiment, and trend detection into a single program, providing beginner investors with relevant knowledge to make efficient and informed data-driven investment choices and prevent losses due to uninformed or hasty decisions.  
+Enforce consistent interfaces:
+* BaseProcessor → process(data)
+* BaseAnalyzer → analyze()
+* BaseDataManager → fetch_data(query)
+* BaseQueryBuilder → build_query(params)
 
+Cannot instantiate abstract classes directly.
 
-####**Installation & Setup** 
+#### ** 3. Composition**
 
-1. Clone the repository: https://github.com/jnic11-ops/INST326-semesterproject
+PortfolioManager demonstrates composition:
+```python
+from portfolio_data_manager import PortfolioDataManager
+from stock_data_manager import StockDataManager
 
-2. Create a virtual environment (Visual Studio Code)
+pm = PortfolioManager("portfolio.csv", stock_manager=StockDataManager())
+total_value = pm.compute_total_value("2025-01-01", "2025-11-01")
+print(f"Total portfolio value: ${total_value:,.2f}")
+```
+* Rationale: PortfolioManager contains managers and analyzers instead of inheriting, keeping concerns separated.
 
-3. Install dependencies
-- pip install - r requirements.txt
-- pandas
-- yfinance
+### **Installation & Setup**
+``` python
+# Clone the repository
+git clone https://github.com/jnic11-ops/INST326-semesterproject
 
-4. Run example scripts to test functionality
+# Enter project directory
+cd INST326-semesterproject
 
+# Create virtual environment (optional)
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+venv\Scripts\activate     # Windows
 
+# Install dependencies
+pip install -r requirements.txt
+```
+* Python 3.7+ required
+* Dependencies: pandas, yfinance, requests
 
-#### **Usage Examples For Key Functions**
+### **Running the system**
+```python
+# Run full demo
+python demo.py
+```
+* Demonstrates inheritance hierarchies, polymorphic behavior, abstract base class enforcement, and composition relationships.
 
-###### **validate\_ticker(ticker: str)**
+### **Running Tests**
+```python
+# Run all tests
+python -m unittest test_system -v
+```
+* Tests cover inheritance, polymorphism, ABC enforcement, composition, and integration workflows.
 
-from src.utils.validate\_ticker import validate\_ticker
+### **Usage Examples**
+#### **1. Data Processors (Polymorphism) **
+```python
+from processors_base_classes_subclasses.text_processor import TextProcessor
+from processors_base_classes_subclasses.date_processor import DateProcessor
+from processors_base_classes_subclasses.currency_processor import CurrencyProcessor
 
-print(validate\_ticker("AAPL"))  # True
-
-print(validate\_ticker("goog"))  # False
-
-
-
-
-
-###### **clean\_text(text: str)**
-
-from src.utils.clean\_text import clean\_text
-
-print(clean\_text("<p>The market is rising!</p>"))
-
-\# Output: "market rising"
-
-
-
-###### **format\_currency(value: float)**
-
-from src.utils.format\_currency import format\_currency
-
-print(format\_currency(1234.56))  # $1,234.56
-
-###### **sentiment_analysis(news_list: list[str])**
-
-from src.analysis.sentiment_analysis import sentiment_analysis
-
-news = [
-    "Apple stock surges after strong earnings report",
-    "Tesla shares fall as production slows"
+# Polymorphic usage: same method call on different subclasses
+processors = [
+    TextProcessor(),
+    DateProcessor(),
+    CurrencyProcessor()
 ]
-print(sentiment_analysis(news))
-# Output example: {'Apple stock surges after strong earnings report': 'positive', 'Tesla shares fall as production slows': 'negative'}
 
-
-###### **parse\_portfolio\_csv(file\_path: str)**
-
-from src.data\_collection.parse\_portfolio\_csv import parse\_portfolio\_csv
-
-portfolio = parse\_portfolio\_csv("portfolio.csv")
-
-print(portfolio)
-
-###### **generate_wordcloud_data(news_list: list[dict])**
-
-from src.analysis.generate_wordcloud_data import generate_wordcloud_data
-
-# Example usage
-news_list = [
-    {"title": "Apple stock rises as new iPhone impresses investors"},
-    {"title": "Tech stocks fall slightly after strong gains"},
-    {"title": "Apple launches new product lineup amid market optimism"},
-    {"title": "Investors optimistic as Apple stock reaches record high"}
+samples = [
+    "<p>Hello World!</p>",  # Text
+    "2025-11-23",           # Date
+    1234.56                 # Currency
 ]
 
-result = generate_wordcloud_data(news_list)
-print(result)
-
-# Example output:
-# {'apple': 3, 'stock': 2, 'investors': 2, 'new': 2, 'iphone': 1, 'market': 1, ...}
-
-
-
-
-
-
-#### **Function Library Overview**
-
-###### **utils**
-
-* \_\_init\_\_
-* validate\_ticker()
-* normalize\_date()
-* clean\_text()
-* format\_currency()
-* log\_metadata()
-
-
-
-###### **data collection**
-
-* \_\_init\_\_
-* fetch\_stock\_data()
-* fetch\_news()
-* parse\_portfolio()
-
-
-
-###### **analysis**
-
-* \_\_init\_\_
-* sentiment_analysis()
-* topic\_modeling()
-* detect\_price\_anomalies()
-* calculate\_technical\_indicators()
-* generate_worldcloud_data()
-
-
-
-###### **reporting**
-
-* \_\_init\_\_
-* export\_report
-
-
-
-###### **interface**
-
-* \_\_init\_\_
-
-
-
-
-
-#### **Contribution Guidelines for Team Members** 
-
-
-
-1. **Branching Strategy:** 
-
-* Always work on a separate branch, never directly on main. 
-
-* Creating different branches for each project feature based on the level of complexity of each function. For example, Matthew worked on creating the simple utility functions of our program, so we would create a separate branch for the utility functions if any updates were going to be made.
-* Branch naming convention, such as feature/ utils and feature/data collection
-
-
-
-**2. Commit Guidelines:**
-
-* Commit frequently with clear, descriptive messages.
-* Example:
-
-&nbsp;  git commit -m "Add clean\_text utility function"
-
-
-
-**3. Code Style:**
-
-* Follow PEP8 Python standards.
-* Include docstrings for all functions (parameters, return values, description).
-* Keep functions modular and reusable.
-
-
-
-**4. Pull Requests (PRs):**
-
-* Open a PR when your feature or bugfix is ready.
-* Include a description of changes, relevant issues, and example usage if applicable.
-* Assign at least one team member to review your PR.
-* After approval, merge into main using GitHub’s merge tool or git merge.
-
-
-
-**5. Testing:**
-
-* Always test new functions locally before pushing.
-* Include example scripts in the examples/ folder.
-* For data processing or analysis functions, provide sample input/output.
-
-
-
-**6. Documentation:**
-
-* Update the function\_reference.md when you add or modify functions.
-* Update usage\_examples.md with sample scripts demonstrating function usage.
-* Ensure README reflects any new features or dependencies.
-
-
-
-**7. Issues \& Bug Tracking:**
-
-* Use GitHub Issues to track bugs, tasks, or enhancements.
-* Reference issues in commits and PRs using #issue-number.
-
-
-
-**8. Communication:** 
-
-* Discuss major design decisions before implementation.
-* Notify the team of changes affecting folder structure, APIs, or data schema.
-
-
-
-
+for processor, value in zip(processors, samples):
+    print(f"{processor.__class__.__name__} -> {processor.process(value)}")
+```
+#### **Expected Output:**
+```python
+TextProcessor -> hello world
+DateProcessor -> 2025-11-23 00:00:00
+CurrencyProcessor -> $1,234.56
+```
+Explanation: The process() method is polymorphic: same interface, different behavior per subclass.
+
+
+#### **2. Analyzers (Polymorphism)**
+```python
+from analyzers_base_classes_subclasses.news_analyzer import NewsAnalyzer
+from analyzers_base_classes_subclasses.stock_analyzer import StockAnalyzer
+
+# Dummy data manager for demonstration
+class DummyDataManager:
+    def fetch_data(self, query): return {}
+    def process_data(self, data): return {}
+
+data_manager = DummyDataManager()
+
+analyzers = [
+    NewsAnalyzer(data_manager),
+    StockAnalyzer("AAPL", data_manager)
+]
+
+for analyzer in analyzers:
+    print(f"{analyzer.__class__.__name__} -> {analyzer.analyze()}")
+```
+Explanation: 
+analyze() behaves differently depending on whether it's a NewsAnalyzer or StockAnalyzer, demonstrating polymorphism in the analyzer hierarchy.
+
+
+#### **3. Query Builders (Polymorphism)**
+```python
+from query_builders_base_classes_subclasses.dashboard_query_builder import DashboardQueryBuilder
+from query_builders_base_classes_subclasses.user_query_builder import UserQueryBuilder
+
+builders = [
+    DashboardQueryBuilder(),
+    UserQueryBuilder()
+]
+
+for builder in builders:
+    query = builder.build_query({"ticker": "AAPL"})
+    print(f"{builder.__class__.__name__} -> {query}")
+```
+Explanation: 
+Both query builders implement build_query() differently but share the same interface, allowing interchangeable use.
+
+#### **4. Portfolio Manager (Composition)**
+```python
+from portfolio_manager import PortfolioManager
+from data_managers_base_classes_subclasses.stock_data_manager import StockDataManager
+
+# PortfolioManager uses composition: contains StockDataManager and coordinates fetching and calculations
+pm = PortfolioManager("portfolio.csv", stock_manager=StockDataManager())
+total_value = pm.compute_total_value("2025-01-01", "2025-11-01")
+print(f"Total portfolio value: ${total_value:,.2f}")
+```
+Explanation:
+PortfolioManager delegates data fetching and computations to its composed objects rather than inheriting from them, demonstrating proper composition.
+
+### **File Structure**
+```python
+project/
+├── base_classes/
+│   ├── base_processor.py
+│   ├── base_analyzer.py
+│   ├── base_data_manager.py
+│   └── base_query_builder.py
+├── processors_base_classes_subclasses/
+├── analyzers_base_classes_subclasses/
+├── data_managers_base_classes_subclasses/
+├── query_builders_base_classes_subclasses/
+├── portfolio_manager.py
+├── demo.py
+├── test_system.py
+└── README.md
+```
+
+### **Design Decisions**
+#### **Why Inheritance?**
+* Clear is-a relationships (e.g., TextProcessor is-a BaseProcessor)
+* Code reuse via shared attributes and methods
+* Polymorphic method calls across multiple object types
+
+#### **Why Composition?**
+* PortfolioManager coordinates multiple objects without inheriting
+* Allows flexible relationships, scalable system design
+* Maintains single responsibility principle
 
 
 
