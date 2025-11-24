@@ -1,0 +1,103 @@
+# Stock Information System – Architecture Diagram
+
+## Complete System Overview
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                          ABSTRACT BASE LAYER                                 │
+│                  (Shared Interfaces & Contracts via ABCs)                    │
+├──────────────────────────────────────────────────────────────────────────────┤
+
+   BaseDataManager (abstract)         BaseAnalyzer (abstract)
+      + fetch_data()                     + analyze()
+
+   BaseProcessor (abstract)           BaseQueryBuilder (abstract)
+      + process()                        + build_query()
+
+             ▲                                   ▲
+             │ inherits                           │ inherits
+             │                                   │
+
+┌────────────┼─────────────────────────────────────┼──────────────────────────┐
+│             CONCRETE IMPLEMENTATION LAYER (Inheritance + Polymorphism)     │
+├────────────┴─────────────────────────────────────┴──────────────────────────┤
+
+   StockDataManager                  PortfolioDataManager
+     + fetch_data()                    + fetch_data()
+
+   NewsDataManager                   TextProcessor
+     + fetch_data()                    + process()
+
+   StockAnalyzer                     NewsAnalyzer
+     + analyze()                       + analyze()
+     + summarize()                     + summarize()
+
+   UserQueryBuilder
+     + build_query()
+
+└──────────────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   │ polymorphic summarize()
+                                   ▼
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        POLYMORPHIC SUMMARY LAYER                             │
+├──────────────────────────────────────────────────────────────────────────────┤
+
+   All Classes implement:
+      summarize() → dict
+
+   StockAnalyzer     → stock metrics  
+   NewsAnalyzer      → sentiment + keywords  
+   PortfolioManager  → holdings + totals  
+
+   summary_utils.build_system_summaries()
+      → Calls summarize() on all objects (no type checks)
+
+└──────────────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   │ composition
+                                   ▼
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                          COMPOSITION LAYER                                   │
+│                    (Classes That Contain Other Classes)                      │
+├──────────────────────────────────────────────────────────────────────────────┤
+
+   PortfolioManager
+     HAS-A StockDataManager
+       • _data_manager: StockDataManager
+       • compute_total_value() uses _data_manager.fetch_stock_data()
+
+   StockAnalyzer
+     HAS-A pandas DataFrame
+
+   NewsAnalyzer
+     HAS-A list of articles
+
+└──────────────────────────────────────────────────────────────────────────────┘
+
+
+## Key Relationships
+
+INHERITANCE (is-a)
+- StockDataManager IS-A BaseDataManager  
+- PortfolioDataManager IS-A BaseDataManager  
+- NewsDataManager IS-A BaseDataManager  
+- StockAnalyzer IS-A BaseAnalyzer  
+- NewsAnalyzer IS-A BaseAnalyzer  
+- TextProcessor IS-A BaseProcessor  
+- UserQueryBuilder IS-A BaseQueryBuilder  
+
+COMPOSITION (has-a)
+- PortfolioManager HAS-A StockDataManager  
+- StockAnalyzer HAS-A DataFrame  
+- NewsAnalyzer HAS-A articles[]  
+
+POLYMORPHISM
+- All analyzers/processors/managers implement:
+    • analyze()  
+    • process()  
+    • fetch_data()  
+    • summarize()  
+- build_system_summaries() calls summarize() on any component
+
