@@ -1,5 +1,7 @@
-# Core data handling
-pandas>=2.0.0
-
-#Financial data retrieval
-yfinance>=0.2.37
+pandas
+yfinance
+feedparser
+fastapi
+uvicorn[standard]
+requests
+matplotlib
