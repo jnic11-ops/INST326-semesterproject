@@ -53,7 +53,7 @@ def run_cli():
             payload = sc.get_stock_timeseries(ticker, start, end)
 
             if "error" in payload:
-                print(f"\n❌ ERROR: {payload['error']}")
+                print(f"\n ERROR: {payload['error']}")
                 continue
 
             last_price = payload["datasets"][0]["data"][-1]
@@ -65,12 +65,12 @@ def run_cli():
             spark = generate_sparkline(prices)
 
             print("\n------------------------------------------------------------")
-            print(f"📌 Ticker: {ticker}")
-            print(f"📈 Latest Closing Price: ${last_price:.2f}")
-            print(f"📊 SMA-20: {sma20:.2f}")
-            print(f"📊 RSI-14: {rsi14:.2f}")
-            print(f"⚠️ Anomalies Detected (>7% moves): {len(anomalies)}")
-            print(f"📉 Price Trend Sparkline: {spark}")
+            print(f" Ticker: {ticker}")
+            print(f" Latest Closing Price: ${last_price:.2f}")
+            print(f" SMA-20: {sma20:.2f}")
+            print(f" RSI-14: {rsi14:.2f}")
+            print(f" Anomalies Detected (>7% moves): {len(anomalies)}")
+            print(f" Price Trend Sparkline: {spark}")
             print("------------------------------------------------------------")
 
             # Save payload for Option 4 plotting
@@ -105,12 +105,12 @@ def run_cli():
             neg = sum(1 for a in sentiments if a.get("sentiment_label") == "negative")
             neu = len(sentiments) - pos - neg
 
-            print("\n📊 SENTIMENT BREAKDOWN")
+            print("\n SENTIMENT BREAKDOWN")
             print(f"• Positive: {pos}")
             print(f"• Neutral:  {neu}")
             print(f"• Negative: {neg}")
 
-            print("\n🔑 TOP KEYWORDS:")
+            print("\n TOP KEYWORDS:")
             for word, freq in list(result["keywords"].items())[:10]:
                 print(f"  {word:<12} {freq}")
 
@@ -121,7 +121,7 @@ def run_cli():
             print_header("Portfolio Dashboard")
 
             if not sc.portfolio_manager:
-                print("❌ Portfolio CSV not provided.")
+                print(" Portfolio CSV not provided.")
                 continue
 
             dashboard = sc.build_portfolio_dashboard()
@@ -141,7 +141,7 @@ def run_cli():
             print_header("Interactive Stock Chart")
 
             if "last_stock_payload" not in globals():
-                print("❌ Run Option 1 first to load stock data.")
+                print(" Run Option 1 first to load stock data.")
                 continue
 
             p = last_stock_payload
