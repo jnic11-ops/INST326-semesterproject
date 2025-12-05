@@ -112,7 +112,7 @@ pip install -r requirements.txt
 ### **Running the system**
 ```python
 # Run full demo
-python demo.py
+python demo_script.py
 ```
 * Demonstrates inheritance hierarchies, polymorphic behavior, abstract base class enforcement, and composition relationships.
 
