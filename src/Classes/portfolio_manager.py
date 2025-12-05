@@ -1,18 +1,20 @@
 import csv
 import os
-from stock_data_manager import StockDataManager
+from src.classes.stock_data_manager import StockDataManager
 
 class PortfolioManager:
     """
     Manage user portfolio files and provide access to holdings data.
     """
 
-    def __init__(self, file_path: str):
+    def __init__(self, file_path: str, data_manager: StockDataManager = None):
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"File not found: {file_path}")
+
         self._file_path = file_path
-        self._portfolio = self._load_portfolio()  # main loading method
-        # Composition: PortfolioManager "has a" StockDataManager
+        self._portfolio = self._load_portfolio()
+
+    # Composition: PortfolioManager "has a" StockDataManager
         self._data_manager = data_manager or StockDataManager()
 
     @property
