@@ -1,8 +1,10 @@
 # system/system_controller.py
+
 import json
 import os
 from datetime import datetime
 from typing import Dict, Any, Optional, List
+from pathlib import Path
 
 import pandas as pd
 
@@ -26,29 +28,34 @@ class SystemController:
         os.makedirs(os.path.join(self.data_dir, "analysis_reports"), exist_ok=True)
         os.makedirs(os.path.join(self.data_dir, "stock_cache"), exist_ok=True)
 
-        # core components
+        # Core components
         self.data_manager = StockDataManager()
         self.data_processor = DataProcessor()
         self.news_analyzer = NewsAnalyzer()
         self.query_builder = UserQueryBuilder()
 
-        # optional portfolio manager
+        # NEW: Save CSV path for dynamic updates later
+        self.portfolio_csv_path = portfolio_csv_path
+
+        # Optional portfolio manager
         self.portfolio_manager = (
             PortfolioManager(portfolio_csv_path, data_manager=self.data_manager)
-            if portfolio_csv_path
-            else None
+            if portfolio_csv_path else None
         )
 
-    # ============================================================
-    # STOCK TIME SERIES + INDICATORS
-    # ============================================================
-    def get_stock_timeseries(self, ticker: str, start: str, end: str) -> Dict[str, Any]:
-        """
-        Fetch OHLCV and compute SMA/RSI/anomalies.
-        Returns a chart payload suitable for plotting.
-        """
+    # =============================================================
+    # NEW — Allow updating portfolio CSV dynamically
+    # =============================================================
+    def set_portfolio_csv(self, path: str):
+        """Updates portfolio CSV path and reloads the portfolio manager."""
+        self.portfolio_csv_path = path
+        self.portfolio_manager = PortfolioManager(path, data_manager=self.data_manager)
 
-        # Validate ticker
+    # =============================================================
+    # STOCK TIME SERIES + INDICATORS
+    # =============================================================
+    def get_stock_timeseries(self, ticker: str, start: str, end: str) -> Dict[str, Any]:
+
         if not self.data_manager.validate_ticker(ticker):
             return {"error": f"Invalid ticker: {ticker}"}
 
@@ -60,51 +67,39 @@ class SystemController:
         if df is None or df.empty:
             return {"error": f"No data found for {ticker} between {start} and {end}."}
 
-        # Remove duplicated columns (Yahoo sometimes returns duplicates)
         df = df.loc[:, ~df.columns.duplicated()]
 
-        # Ensure Date column exists
         if "Date" not in df.columns:
             df = df.reset_index()
+
         if "Date" not in df.columns:
-            return {"error": "Data source did not return a usable Date column."}
+            return {"error": "Data source returned no Date column."}
 
-        # Ensure Close column exists
         if "Close" not in df.columns:
-            return {"error": "Data source did not return a Close column."}
+            return {"error": "Data source returned no Close column."}
 
-        # Force Close to float
+        # Ensure numeric Close values
         try:
             df["Close"] = df["Close"].astype(float)
         except Exception:
-            return {"error": "Close column contains invalid values."}
+            return {"error": "Close column contains invalid numerical values."}
 
-        # ============================================================
-        # RUN ANALYSIS
-        # ============================================================
+        # Analyze indicators
         analyzer = StockAnalyzer(ticker, df)
         analyzer.calculate_sma(window=20)
         analyzer.calculate_rsi(window=14)
         anomalies = analyzer.detect_anomalies(threshold=0.07)
 
-        # ============================================================
-        # SAFE PRICE & DATE EXTRACTION (FIXES .tolist() ERROR)
-        # ============================================================
-        # Fix Close column (sometimes returned as DataFrame)
-        close_series = df["Close"]
-        if isinstance(close_series, pd.DataFrame):
-            close_series = close_series.iloc[:, 0]
-        prices = close_series.astype(float).tolist()
+        close_data = df["Close"]
+        if isinstance(close_data, pd.DataFrame):
+            close_data = close_data.iloc[:, 0]
+        prices = close_data.tolist()
 
-        # Fix Date column
-        date_series = df["Date"]
-        if isinstance(date_series, pd.DataFrame):
-            date_series = date_series.iloc[:, 0]
-        timestamps = date_series.tolist()
+        date_data = df["Date"]
+        if isinstance(date_data, pd.DataFrame):
+            date_data = date_data.iloc[:, 0]
+        timestamps = date_data.astype(str).tolist()
 
-        # ============================================================
-        # BUILD PAYLOAD
-        # ============================================================
         payload = UserQueryBuilder.prepare_chart_payload(
             prices=prices,
             timestamps=timestamps,
@@ -117,13 +112,10 @@ class SystemController:
 
         return payload
 
-    # ============================================================
+    # =============================================================
     # NEWS + SENTIMENT
-    # ============================================================
+    # =============================================================
     def get_news_with_sentiment(self, ticker: str, feed_urls: List[str]):
-        """
-        Fetch news for ticker via NewsAnalyzer and return sentiment + keywords.
-        """
         self.news_analyzer.fetch(ticker, feed_urls)
         sentiments = self.news_analyzer.analyze_sentiment()
         keywords = self.news_analyzer.extract_keywords()
@@ -134,9 +126,9 @@ class SystemController:
             "keywords": keywords,
         }
 
-    # ============================================================
+    # =============================================================
     # PORTFOLIO
-    # ============================================================
+    # =============================================================
     def compute_portfolio_value(self, start: str, end: str) -> float:
         if not self.portfolio_manager:
             raise RuntimeError("PortfolioManager not initialized.")
@@ -153,19 +145,18 @@ class SystemController:
             df = self.data_manager.fetch_stock_data(
                 ticker,
                 start="2024-01-01",
-                end=datetime.now().strftime("%Y-%m-%d"),
+                end=datetime.now().strftime("%Y-%m-%d")
             )
             price = df["Close"].iloc[-1] if not df.empty else None
             latest_prices[ticker] = price
 
-        dashboard = UserQueryBuilder.build_dashboard_summary(
+        return UserQueryBuilder.build_dashboard_summary(
             portfolio, latest_prices, news_items=None, alerts=None
         )
-        return dashboard
 
-    # ============================================================
+    # =============================================================
     # UTILITIES
-    # ============================================================
+    # =============================================================
     def clean_text(self, text: str) -> str:
         return self.data_processor.clean_text(text)
 
@@ -175,9 +166,48 @@ class SystemController:
     def format_currency(self, value: float) -> str:
         return self.data_processor.format_currency(value)
 
-    # ============================================================
-    # EXPORT
-    # ============================================================
+    # =============================================================
+    # PERSISTENCE (Save/Load GUI State)
+    # =============================================================
+    def save_state(self, state: dict, filename: str = "data/app_state.json") -> None:
+        path = Path(filename)
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        try:
+            with path.open("w", encoding="utf-8") as f:
+                json.dump(state, f, indent=2)
+        except OSError as e:
+            print(f"[WARNING] Failed to save state: {e}")
+
+    def load_state(self, filename: str = "data/app_state.json") -> dict:
+        path = Path(filename)
+        if not path.exists():
+            return {}
+
+        try:
+            with path.open("r", encoding="utf-8") as f:
+                return json.load(f)
+        except (OSError, json.JSONDecodeError) as e:
+            print(f"[WARNING] Failed to load state: {e}")
+            return {}
+
+    # =============================================================
+    # CSV IMPORT
+    # =============================================================
+    def import_csv(self, path: str) -> pd.DataFrame:
+        try:
+            df = pd.read_csv(path)
+        except Exception as e:
+            raise ValueError(f"Unable to read CSV file: {e}")
+
+        if not isinstance(df, pd.DataFrame):
+            raise ValueError("CSV did not load as a DataFrame.")
+
+        return df
+
+    # =============================================================
+    # EXPORT ANALYSIS JSON
+    # =============================================================
     def export_analysis(self, payload: Dict[str, Any], filename: Optional[str] = None) -> str:
         filename = filename or f"analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         out_path = os.path.join(self.data_dir, "analysis_reports", filename)
@@ -189,5 +219,6 @@ class SystemController:
 
     def __str__(self):
         return "<SystemController: integrated app layer>"
+
 
 
