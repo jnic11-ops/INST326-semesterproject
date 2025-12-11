@@ -8,11 +8,10 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from datetime import datetime
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from datetime import datetime, timedelta
 import subprocess
 import platform
-
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
 from system.system_controller import SystemController
 
@@ -61,7 +60,6 @@ class AutoCompleteEntry(ttk.Entry):
             width=self.winfo_width()
         )
         self.listbox.delete(0, tk.END)
-
         for item in matches:
             self.listbox.insert(tk.END, item)
 
@@ -99,7 +97,6 @@ class StockApp(tk.Tk):
         self.title("Stock Information Retrieval & Analysis Tool")
         self.geometry("760x620")
 
-        # System controller (with default portfolio CSV)
         self.sc = SystemController(portfolio_csv_path="ex_portfolio.csv")
 
         saved = self.sc.load_state()
@@ -137,7 +134,7 @@ class HomePage(tk.Frame):
 
         ttk.Label(
             self, text="Stock Analysis Tool",
-            font=("Arial", 24, "bold")
+            font=("Arial", 26, "bold")
         ).pack(pady=20)
 
         btn = dict(fill="x", padx=40, pady=8)
@@ -179,6 +176,13 @@ class Page1_Stock(tk.Frame):
         ttk.Label(self, text="Stock Timeseries + Indicators",
                   font=("Arial", 18, "bold")).pack()
 
+        ttk.Label(
+            self,
+            text="⚠ Date range must be at least **1 month** to retrieve enough data.",
+            foreground="red4",
+            font=("Arial", 10, "bold")
+        ).pack(pady=(2, 8))
+
         ttk.Label(self, text="Ticker Symbol:").pack()
         self.ticker_entry = AutoCompleteEntry(self, COMMON_TICKERS, width=22)
         self.ticker_entry.pack()
@@ -191,21 +195,74 @@ class Page1_Stock(tk.Frame):
         self.end_entry = ttk.Entry(self, width=25)
         self.end_entry.pack()
 
+        quick_frame = ttk.Frame(self)
+        quick_frame.pack(pady=(4, 0))
+        ttk.Label(quick_frame, text="Quick ranges:").pack(side="left")
+        for label, days in [("1M", 30), ("3M", 90), ("6M", 180), ("1Y", 365)]:
+            ttk.Button(
+                quick_frame, text=label,
+                command=lambda d=days: self.set_quick_range(d)
+            ).pack(side="left", padx=2)
+
         ttk.Button(self, text="Run Analysis",
                    command=self.run_analysis).pack(pady=12)
 
         self.output = tk.Text(self, width=90, height=20)
         self.output.pack()
 
+        today = datetime.today().date()
+        self.start_entry.insert(0, (today - timedelta(days=90)).strftime("%Y-%m-%d"))
+        self.end_entry.insert(0, today.strftime("%Y-%m-%d"))
+
+    def set_quick_range(self, days: int):
+        today = datetime.today().date()
+        start = today - timedelta(days=days)
+        self.start_entry.delete(0, tk.END)
+        self.start_entry.insert(0, start.strftime("%Y-%m-%d"))
+        self.end_entry.delete(0, tk.END)
+        self.end_entry.insert(0, today.strftime("%Y-%m-%d"))
+
     def run_analysis(self):
         ticker = self.ticker_entry.get().upper().strip()
-        start = self.start_entry.get().strip()
-        end = self.end_entry.get().strip()
+        start_str = self.start_entry.get().strip()
+        end_str = self.end_entry.get().strip()
 
-        payload = self.controller.sc.get_stock_timeseries(ticker, start, end)
+        try:
+            start_date = datetime.strptime(start_str, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_str, "%Y-%m-%d").date()
+        except ValueError:
+            messagebox.showerror("Invalid Date", "Dates must be in YYYY-MM-DD format.")
+            return
+
+        if (end_date - start_date).days < 30:
+            messagebox.showerror(
+                "Range Too Small",
+                "Your selected date range must be at least **1 full month**."
+            )
+            return
+
+        today = datetime.today().date()
+        if end_date > today:
+            end_date = today
+
+        while end_date.weekday() >= 5:
+            end_date -= timedelta(days=1)
+
+        start_str = start_date.strftime("%Y-%m-%d")
+        end_str = end_date.strftime("%Y-%m-%d")
+
+        payload = self.controller.sc.get_stock_timeseries(ticker, start_str, end_str)
 
         if "error" in payload:
-            messagebox.showerror("Error", payload["error"])
+            message = payload["error"]
+            if "No data found" in message:
+                message += (
+                    "\n\nTips:\n"
+                    "- Try a longer range.\n"
+                    "- Ensure trading days are included.\n"
+                    "- Recent dates may not have data yet."
+                )
+            messagebox.showerror("No Data", message)
             return
 
         self.controller.last_payload = payload
@@ -215,7 +272,7 @@ class Page1_Stock(tk.Frame):
 
         output = (
             f"\nTicker: {ticker}\n"
-            f"Range: {start} → {end}\n"
+            f"Range: {start_str} → {end_str}\n"
             f"Last Price: {prices[-1]:.2f}\n"
             f"SMA-20: {payload['indicators']['SMA_20'][-1]:.2f}\n"
             f"RSI-14: {payload['indicators']['RSI_14'][-1]:.2f}\n"
@@ -242,18 +299,16 @@ class Page2_News(tk.Frame):
         ttk.Label(self, text="News Sentiment Analysis",
                   font=("Arial", 18, "bold")).pack()
 
-        # Instructions for this screen
         ttk.Label(
             self,
             text=(
-                "This screen retrieves recent financial news for the chosen ticker and "
-                "summarizes overall sentiment (positive, neutral, negative) along with "
-                "the most frequent keywords found in the articles."
+                "Use this screen to fetch financial news for a stock and analyze\n"
+                "whether articles are positive, neutral, or negative."
             ),
-            wraplength=700,
             foreground="gray30",
-            justify="left"
-        ).pack(padx=10, pady=(0, 10))
+            wraplength=720,
+            justify="left",
+        ).pack(pady=(0, 10))
 
         ttk.Label(self, text="Ticker Symbol:").pack()
         self.ticker_entry = AutoCompleteEntry(self, COMMON_TICKERS, width=22)
@@ -364,6 +419,7 @@ class Page3_Portfolio(tk.Frame):
         self.output.insert(tk.END, output)
 
 
+
 # ======================================================
 # PAGE 4 — Plot Stock Chart
 # ======================================================
@@ -379,29 +435,36 @@ class Page4_Plot(tk.Frame):
         ttk.Label(self, text="Plot Stock Chart",
                   font=("Arial", 18, "bold")).pack()
 
-        # Instructions for this screen
         ttk.Label(
             self,
             text=(
-                "This screen plots the price history, indicators (SMA/RSI), and detected anomalies "
-                "for the most recent stock analysis you ran in Option 1.\n"
-                "Use the toolbar below the chart to zoom and pan, and hover over points to see "
-                "exact dates and prices."
+                "This screen visualizes the most recent analysis from Option 1.\n"
+                "Hover over points for details. Use toolbar controls to zoom, pan, and reset."
             ),
-            wraplength=700,
             foreground="gray30",
-            justify="left"
-        ).pack(padx=10, pady=(0, 10))
+            wraplength=720,
+            justify="left",
+        ).pack(pady=(0, 6))
+
+        ttk.Label(
+            self,
+            text=(
+                "X-Axis Note: Ranges under one year use Month + Year (e.g., Jan 2025).\n"
+                "Ranges one year or longer use Year-only formatting."
+            ),
+            foreground="gray25",
+            font=("Arial", 9, "italic"),
+            wraplength=720,
+            justify="left",
+        ).pack(pady=(0, 10))
 
         ttk.Button(self, text="Show Chart",
                    command=self.plot_chart).pack(pady=12)
 
-        # container for the chart
         self.chart_frame = tk.Frame(self)
         self.chart_frame.pack(fill="both", expand=True)
 
     def plot_chart(self):
-        # Clear old widgets
         for widget in self.chart_frame.winfo_children():
             widget.destroy()
 
@@ -416,21 +479,17 @@ class Page4_Plot(tk.Frame):
 
         fig, ax = plt.subplots(figsize=(10, 5), dpi=100)
 
-        # MAIN PRICE LINE
         price_line, = ax.plot(dates, prices, label="Price", color="blue")
 
-        # INDICATORS (SMA, RSI, etc.)
         indicators = payload["indicators"]
         indicator_lines = {}
         for name, series in indicators.items():
             line, = ax.plot(dates, series, label=name)
             indicator_lines[name] = line
 
-        # ANOMALIES (red dots)
         anomalies = payload.get("anomalies", [])
         anomaly_dates = []
         anomaly_prices = []
-
         for idx in anomalies:
             if 0 <= idx < len(dates):
                 anomaly_dates.append(dates[idx])
@@ -439,15 +498,10 @@ class Page4_Plot(tk.Frame):
         scatter_points = None
         if anomaly_dates:
             scatter_points = ax.scatter(
-                anomaly_dates,
-                anomaly_prices,
-                color="red",
-                s=45,
-                label="Anomaly",
-                zorder=5
+                anomaly_dates, anomaly_prices,
+                color="red", s=45, label="Anomaly", zorder=5
             )
 
-        # HOVER TOOLTIP (custom)
         tooltip = ax.annotate(
             "",
             xy=(0, 0),
@@ -458,8 +512,8 @@ class Page4_Plot(tk.Frame):
             visible=False
         )
 
-        def format_price(p):
-            return f"${p:,.2f}"
+        def format_price(v):
+            return f"${v:,.2f}"
 
         def on_hover(event):
             if event.inaxes != ax:
@@ -467,41 +521,37 @@ class Page4_Plot(tk.Frame):
                 fig.canvas.draw_idle()
                 return
 
-            # ANOMALY POINT HOVER
             if scatter_points:
                 cont, ind = scatter_points.contains(event)
                 if cont:
                     idx = ind["ind"][0]
-                    x = anomaly_dates[idx]
-                    y = anomaly_prices[idx]
-
-                    tooltip.xy = (x, y)
-                    tooltip.set_text(f"{x.strftime('%Y-%m-%d')}\nPrice: {format_price(y)}")
+                    tooltip.xy = (anomaly_dates[idx], anomaly_prices[idx])
+                    tooltip.set_text(
+                        f"{anomaly_dates[idx].strftime('%Y-%m-%d')}\nPrice: {format_price(anomaly_prices[idx])}"
+                    )
                     tooltip.set_visible(True)
                     fig.canvas.draw_idle()
                     return
 
-            # PRICE LINE HOVER
             cont, ind = price_line.contains(event)
             if cont:
                 idx = ind["ind"][0]
-                x = dates[idx]
-                y = prices[idx]
-                tooltip.xy = (x, y)
-                tooltip.set_text(f"{x.strftime('%Y-%m-%d')}\nPrice: {format_price(y)}")
+                tooltip.xy = (dates[idx], prices[idx])
+                tooltip.set_text(
+                    f"{dates[idx].strftime('%Y-%m-%d')}\nPrice: {format_price(prices[idx])}"
+                )
                 tooltip.set_visible(True)
                 fig.canvas.draw_idle()
                 return
 
-            # INDICATOR LINES HOVER
             for name, line in indicator_lines.items():
                 cont, ind = line.contains(event)
                 if cont:
                     idx = ind["ind"][0]
-                    x = dates[idx]
-                    y = indicators[name][idx]
-                    tooltip.xy = (x, y)
-                    tooltip.set_text(f"{name}\n{x.strftime('%Y-%m-%d')}\n{format_price(y)}")
+                    tooltip.xy = (dates[idx], indicators[name][idx])
+                    tooltip.set_text(
+                        f"{name}\n{dates[idx].strftime('%Y-%m-%d')}\n{format_price(indicators[name][idx])}"
+                    )
                     tooltip.set_visible(True)
                     fig.canvas.draw_idle()
                     return
@@ -511,31 +561,30 @@ class Page4_Plot(tk.Frame):
 
         fig.canvas.mpl_connect("motion_notify_event", on_hover)
 
-        # X-AXIS = YEAR ONLY
-        ax.xaxis.set_major_locator(mdates.YearLocator())
-        ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
+        total_days = (dates[-1] - dates[0]).days
+        if total_days < 365:
+            ax.xaxis.set_major_locator(mdates.MonthLocator())
+            ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
+        else:
+            ax.xaxis.set_major_locator(mdates.YearLocator())
+            ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
 
-        # Y-AXIS formatting
         ax.set_ylabel("Price ($)")
-        ax.get_yaxis().set_major_formatter(
+        ax.yaxis.set_major_formatter(
             plt.FuncFormatter(lambda v, _: f"${v:,.0f}")
         )
 
-        # Final Styling
         plt.title(payload["title"])
         plt.grid(True)
         plt.legend()
         plt.tight_layout()
 
-        # Embed figure in Tkinter
         canvas = FigureCanvasTkAgg(fig, master=self.chart_frame)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True)
 
-        # Toolbar under the chart (zoom, pan, etc.)
         toolbar = NavigationToolbar2Tk(canvas, self.chart_frame)
         toolbar.update()
-        # Do NOT re-pack the canvas again here (avoids duplicate widgets)
 
 
 # ======================================================
@@ -619,18 +668,16 @@ class PageExport(tk.Frame):
             font=("Arial", 18, "bold")
         ).pack()
 
-        # Instructions for this screen
         ttk.Label(
             self,
             text=(
-                "This screen lets you export the most recent stock analysis (from Option 1) "
-                "as a JSON file.\nChoose a save location and filename, and the app will "
-                "save a structured report that you can open later or share."
+                "Save the most recent analysis from Option 1 as a JSON file.\n"
+                "This allows documentation, sharing, or later review."
             ),
-            wraplength=700,
             foreground="gray30",
-            justify="left"
-        ).pack(padx=10, pady=(0, 10))
+            wraplength=720,
+            justify="left",
+        ).pack(pady=(0, 10))
 
         ttk.Button(
             self, text="Export to JSON",
@@ -640,10 +687,9 @@ class PageExport(tk.Frame):
         self.status = tk.Label(self, text="", fg="green")
         self.status.pack()
 
-    # Export JSON with Save-As dialog
     def export_json(self):
         if not self.controller.last_payload:
-            messagebox.showerror("Error", "No analysis available to export.")
+            messagebox.showerror("Error", "No analysis available. Run Option 1 first.")
             return
 
         save_path = filedialog.asksaveasfilename(
@@ -659,7 +705,6 @@ class PageExport(tk.Frame):
             self.controller.sc.export_analysis(self.controller.last_payload, save_path)
             self.status.config(text=f"Exported to:\n{save_path}")
 
-            # Auto-open after saving
             if platform.system() == "Windows":
                 os.startfile(save_path)
             elif platform.system() == "Darwin":
@@ -677,6 +722,8 @@ class PageExport(tk.Frame):
 if __name__ == "__main__":
     app = StockApp()
     app.mainloop()
+
+
 
 
 
