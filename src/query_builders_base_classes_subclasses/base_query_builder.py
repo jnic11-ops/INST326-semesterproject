@@ -1,13 +1,16 @@
+# query_builders_base_classes_subclasses/base_query_builder.py
 from abc import ABC, abstractmethod
+from typing import Dict
 
 class BaseQueryBuilder(ABC):
-    """Abstract base class for all query builders."""
-
-    def validate(self, params: dict) -> dict:
-        """Shared optional validation/preprocessing for parameters."""
-        return params
+    """Abstract query builder that normalizes UI input into API/db queries."""
 
     @abstractmethod
-    def build_query(self, params: dict):
-        pass
+    def build_query(self, params: Dict) -> Dict:
+        """
+        Build and return a normalized query dict from user-provided params.
+        """
+        raise NotImplementedError
+
+
 
