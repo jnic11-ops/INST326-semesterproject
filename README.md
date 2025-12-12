@@ -238,6 +238,15 @@ project/
 * Allows flexible relationships, scalable system design
 * Maintains single responsibility principle
 
+## OOP Enhancements (Added)
+
+We strengthened the codebase for Project 3 by:
+- Converting analyzer / manager / processor / query builder definitions into explicit abstract base classes (ABCs).
+- Adding a small DataPipeline composition class that coordinates StockDataManager, NewsManager and analyzers.
+- Adding system/polymorphism_demo.py — demonstrates polymorphism by calling analyze() on multiple analyzers via the BaseAnalyzer interface.
+
+These changes make inheritance, polymorphism, and composition explicit and testable.
+
 
 
 
