@@ -1,243 +1,238 @@
-# Stock Market Data & News Analysis System — Project 3
+# Stock Market Data & News Analysis System — Project 4  
+**INST326: Object-Oriented Programming for Information Science**  
+Capstone Integration, Persistence, and Testing
 
-INST326: Object-Oriented Programming for Information Science
-Advanced OOP with Inheritance & Polymorphism
+---
 
+## Team Information
+**Team Members & Contributions**
+- **Matthew Daniel** — Lead Developer; system integration, GUI development, persistence implementation, documentation, testing coordination
+- **[Teammate Name]** — Testing and validation
+- **[Teammate Name]** — Data analysis and portfolio logic
 
-### **Project Overview**
-This system is a comprehensive financial data and news analysis platform demonstrating advanced object-oriented programming principles, including:
-* Inheritance hierarchies with abstract base classes
-* Polymorphic behavior across analyzers, processors, and query builders
-* Composition relationships in portfolio management
-* Scalable and modular architecture for extensibility
+---
 
-The platform collects and analyzes:
-* Real-time & historical stock market data
-* Financial news sentiment and topics
-* Portfolio tracking from user-uploaded data
-* Trend detection and anomaly detection
-* Exportable reports (PDF, CSV, JSON)
-* Keyword frequency for visualizations (e.g., word clouds)
+## Project Overview
+This project is a complete, functional financial information system that retrieves, analyzes, visualizes, and persists stock market and financial news data. It integrates all major components developed throughout the semester into a cohesive, end-to-end application.
 
-### **System Architecture**
+The system answers real-world financial information questions by combining:
+- Historical stock price analysis
+- Technical indicators and anomaly detection
+- Financial news sentiment analysis
+- Portfolio tracking from user-provided data
+- Interactive visualizations
+- Persistent data storage and exportable reports
 
-#### **Inheritance Hierachies**
+This Project 4 submission represents a **capstone artifact**, demonstrating system completeness, data persistence, testing strategy, and professional software development practices.
 
-Data Processors
-```python
-BaseDataManager (ABC)
-├── StockDataManager
-├── NewsDataManager
-└── PortfolioDataManager
+---
+
+## Key Features
+
+### 1. Stock Time Series & Indicators
+- Historical stock price retrieval
+- Simple Moving Average (SMA-20)
+- Relative Strength Index (RSI-14)
+- Anomaly detection
+- Input validation with minimum date range enforcement
+- Automatic handling of weekends and future dates
+
+### 2. News Sentiment Analysis
+- RSS-based financial news retrieval
+- Sentiment classification (positive, neutral, negative)
+- Keyword frequency extraction
+- Display of article metadata and sources
+
+### 3. Portfolio Dashboard
+- Load portfolio data from CSV files
+- Dynamic portfolio updates at runtime
+- Total portfolio value calculation
+- Position-level valuation and portfolio weighting
+
+### 4. Interactive Stock Chart Visualization
+- Price and indicator overlays
+- Hover tooltips for prices and indicators
+- Zoom, pan, and reset controls
+- Adaptive x-axis formatting based on date range
+- Visual anomaly markers
+
+### 5. Data Import & Export
+- Import CSV files for portfolio tracking
+- Preview imported CSV data
+- Export analysis results to JSON
+- Graceful handling of invalid or unreadable files
+
+### 6. Data Persistence
+- Application state saved on exit
+- Previous analysis restored on restart
+- Safe handling of missing or corrupted state files
+
+---
+
+## System Architecture
+The system follows a modular, layered architecture to ensure separation of concerns and maintainability.
+
+### User Interface Layer (View)
+- Implemented in `api/app.py`
+- Built using Tkinter
+- Handles user input, navigation, and visualization
+- Each major feature is implemented as a dedicated page
+
+### Controller Layer
+- Implemented in `system/system_controller.py`
+- Coordinates all workflows
+- Manages persistence, imports, and exports
+- Decouples UI logic from core system logic
+
+### Core Logic & Data Layer
+Located in `src/classes/`, including:
+- `StockDataManager`
+- `StockAnalyzer`
+- `NewsAnalyzer`
+- `PortfolioManager`
+- `DataProcessor`
+- `UserQueryBuilder`
+
+This separation of concerns improves extensibility, testability, and long-term maintainability.
+
+---
+
+## Object-Oriented Design
+This system builds on object-oriented principles developed in earlier projects, including inheritance, composition, encapsulation, and separation of concerns.
+
+Core components such as data managers, analyzers, and processors are encapsulated into dedicated classes with clearly defined responsibilities. Composition is used to coordinate these components within the `SystemController`, allowing flexible integration without tight coupling.
+
+This design enables the system to evolve without requiring major changes to existing UI or business logic.
+
+---
+
+## Data Persistence & File Locations
+
+The application persists data and outputs files in the following locations:
+
+- **`data/app_state.json`**  
+  Stores the most recent analysis payload and restores it on application restart.
+
+- **`data/analysis_reports/`**  
+  Contains exported JSON analysis reports generated via Option 6.
+
+- **Portfolio CSV files**  
+  The default portfolio file is `ex_portfolio.csv`.  
+  Users may import additional CSV files at runtime via Option 5, dynamically updating
+  the active portfolio used in Option 3.
+
+---
+
+## Portfolio CSV Format
+Portfolio CSV files must contain the following columns:
+
+- `ticker` — stock symbol (e.g., AAPL, MSFT)
+- `shares` — number of shares held
+
+Example:
+```csv
+ticker,shares
+AAPL,10
+MSFT,5
+NVDA,3
+
 ```
-* Rationale: Enforces a fetch_data() interface; allows interchangeable data managers.
+---
 
-Query Builders
-```python
-BaseQueryBuilder (ABC)
-├── UserQueryBuilder
-└── DashboardQueryBuilder
-```
-* Rationale: Abstract build_query() method ensures all query builders have consistent behavior.
+## Installation & Setup
 
-#### **Composition Relationships**
-PortfolioManager
-* Has-a StockDataManager
-* Has-a NewsAnalyzer
-* Has-a BaseProcessor subclasses (optional)
-
-Explanation: PortfolioManager coordinates multiple objects rather than inheriting from them, following the single responsibility principle.
-
-### **Key Features**
-
-#### ** 1. Polymorphic Behavior**
-
-Same method calls produce different results based on object type:
-
-* analyze() → NewsAnalyzer vs. StockAnalyzer
-* process() → TextProcessor vs. DateProcessor vs. CurrencyProcessor
-* build_query() → DashboardQueryBuilder vs. UserQueryBuilder
-
-Example: Analyzer Polymorphism
-```python
-from analyzers_base_classes_subclasses import NewsAnalyzer, StockAnalyzer
-
-analyzers = [NewsAnalyzer(data_manager), StockAnalyzer("AAPL", data_manager)]
-for a in analyzers:
-    print(f"{a.__class__.__name__} -> {a.analyze()}")
-```
-
-#### ** 2. Abstract Base Classes**
-
-Enforce consistent interfaces:
-* BaseProcessor → process(data)
-* BaseAnalyzer → analyze()
-* BaseDataManager → fetch_data(query)
-* BaseQueryBuilder → build_query(params)
-
-Cannot instantiate abstract classes directly.
-
-#### ** 3. Composition**
-
-PortfolioManager demonstrates composition:
-```python
-from portfolio_data_manager import PortfolioDataManager
-from stock_data_manager import StockDataManager
-
-pm = PortfolioManager("portfolio.csv", stock_manager=StockDataManager())
-total_value = pm.compute_total_value("2025-01-01", "2025-11-01")
-print(f"Total portfolio value: ${total_value:,.2f}")
-```
-* Rationale: PortfolioManager contains managers and analyzers instead of inheriting, keeping concerns separated.
-
-### **Installation & Setup**
-``` python
+```bash
 # Clone the repository
-git clone https://github.com/jnic11-ops/INST326-semesterproject
+git clone https://github.com/jnic11-ops/INST326-semesterproject.git
 
 # Enter project directory
 cd INST326-semesterproject
 
-# Create virtual environment (optional)
+# (Optional) Create virtual environment
 python -m venv venv
-source venv/bin/activate  # Linux/macOS
-venv\Scripts\activate     # Windows
+source venv/bin/activate   # macOS/Linux
+venv\Scripts\activate      # Windows
 
 # Install dependencies
 pip install -r requirements.txt
-```
-* Python 3.7+ required
-* Dependencies: pandas, yfinance, requests
 
-### **Running the system**
+```
+### **Required Python Function Libraries**
+* pandas
+* yfinance
+* feedparser
+* requests
+* matplotlib
+
+---
+
+## **Running the Application**
 ```python
-# Run full demo
-python demo_script.py
+python api/app.py
 ```
-* Demonstrates inheritance hierarchies, polymorphic behavior, abstract base class enforcement, and composition relationships.
+Use the main menu to access:
+1. Stock Time Series + Indicators
+2. News Sentiment Analysis
+3. Portfolio Dashboard
+4. Plot Stock Chart
+5. Import CSV
+6. Export Last Analysis
 
-### **Running Tests**
-```python
-# Run all tests
-python -m unittest test_system -v
-```
-* Tests cover inheritance, polymorphism, ABC enforcement, composition, and integration workflows.
+---
 
-### **Usage Examples**
-#### **1. Data Processors (Polymorphism) **
-```python
-from processors_base_classes_subclasses.text_processor import TextProcessor
-from processors_base_classes_subclasses.date_processor import DateProcessor
-from processors_base_classes_subclasses.currency_processor import CurrencyProcessor
+## **Testing**
+Testing was conducted through comprehensive and structured manual and functional testing
+to verify correct behavior across all workflows, including:
+* Input validation and error handling
+* Data retrieval and analysis
+* Import and export functionality
+* Persistence across application restarts
+* End-to-end user workflows
+Automated unit and integration tests are limited; testing for this project was primarily conducted through manual and functional validation.
+Detailed testing strategy, coverage, and results are documented in ```testing.md. ```
 
-# Polymorphic usage: same method call on different subclasses
-processors = [
-    TextProcessor(),
-    DateProcessor(),
-    CurrencyProcessor()
-]
+---
 
-samples = [
-    "<p>Hello World!</p>",  # Text
-    "2025-11-23",           # Date
-    1234.56                 # Currency
-]
+## **Documentation**
+* ```README.md ``` — Project overview, setup, and usage
+* ```architecture.md ```— System design and architectural decisions
+* ```testing.md``` — Testing strategy and results
 
-for processor, value in zip(processors, samples):
-    print(f"{processor.__class__.__name__} -> {processor.process(value)}")
-```
-#### **Expected Output:**
-```python
-TextProcessor -> hello world
-DateProcessor -> 2025-11-23 00:00:00
-CurrencyProcessor -> $1,234.56
-```
-Explanation: The process() method is polymorphic: same interface, different behavior per subclass.
+---
 
+## **Known Limitations**
+* News relevance filtering is keyword-based and may include unrelated articles
+* External APIs depend on network availability and data freshness
+* Automated unit tests are limited
 
-#### **2. Analyzers (Polymorphism)**
-```python
-from analyzers_base_classes_subclasses.news_analyzer import NewsAnalyzer
-from analyzers_base_classes_subclasses.stock_analyzer import StockAnalyzer
+---
 
-# Dummy data manager for demonstration
-class DummyDataManager:
-    def fetch_data(self, query): return {}
-    def process_data(self, data): return {}
+## ** Future Enhancements**
+* Automated unit and integration testing
+* Advanced sentiment visualization
+* Portfolio performance charts
+* Improved news relevance filtering
 
-data_manager = DummyDataManager()
+## AI Collaboration & Usage Disclosure
 
-analyzers = [
-    NewsAnalyzer(data_manager),
-    StockAnalyzer("AAPL", data_manager)
-]
+AI-assisted tools were used during development to support system integration,
+debugging, and documentation refinement. AI assistance helped with:
 
-for analyzer in analyzers:
-    print(f"{analyzer.__class__.__name__} -> {analyzer.analyze()}")
-```
-Explanation: 
-analyze() behaves differently depending on whether it's a NewsAnalyzer or StockAnalyzer, demonstrating polymorphism in the analyzer hierarchy.
+- Debugging complex integration issues across GUI, controller, and data layers
+- Suggesting patterns for file I/O, persistence, and error handling
+- Improving clarity and structure of documentation
+- Assisting with test planning and edge-case identification
 
+All AI-generated suggestions were **reviewed, understood, tested, and adapted**
+by the development team. No AI-generated code was used without human validation,
+and all final implementation decisions were made by the team.
 
-#### **3. Query Builders (Polymorphism)**
-```python
-from query_builders_base_classes_subclasses.dashboard_query_builder import DashboardQueryBuilder
-from query_builders_base_classes_subclasses.user_query_builder import UserQueryBuilder
+AI was **not** used to bypass learning objectives or submit unverified solutions.
+Team members take full responsibility for the correctness, behavior, and design
+of the final system.
 
-builders = [
-    DashboardQueryBuilder(),
-    UserQueryBuilder()
-]
-
-for builder in builders:
-    query = builder.build_query({"ticker": "AAPL"})
-    print(f"{builder.__class__.__name__} -> {query}")
-```
-Explanation: 
-Both query builders implement build_query() differently but share the same interface, allowing interchangeable use.
-
-#### **4. Portfolio Manager (Composition)**
-```python
-from portfolio_manager import PortfolioManager
-from data_managers_base_classes_subclasses.stock_data_manager import StockDataManager
-
-# PortfolioManager uses composition: contains StockDataManager and coordinates fetching and calculations
-pm = PortfolioManager("portfolio.csv", stock_manager=StockDataManager())
-total_value = pm.compute_total_value("2025-01-01", "2025-11-01")
-print(f"Total portfolio value: ${total_value:,.2f}")
-```
-Explanation:
-PortfolioManager delegates data fetching and computations to its composed objects rather than inheriting from them, demonstrating proper composition.
-
-### **File Structure**
-```python
-project/
-├── base_classes/
-│   ├── base_processor.py
-│   ├── base_analyzer.py
-│   ├── base_data_manager.py
-│   └── base_query_builder.py
-├── processors_base_classes_subclasses/
-├── analyzers_base_classes_subclasses/
-├── data_managers_base_classes_subclasses/
-├── query_builders_base_classes_subclasses/
-├── portfolio_manager.py
-├── demo.py
-├── test_system.py
-└── README.md
-```
-
-### **Design Decisions**
-#### **Why Inheritance?**
-* Clear is-a relationships (e.g., TextProcessor is-a BaseProcessor)
-* Code reuse via shared attributes and methods
-* Polymorphic method calls across multiple object types
-
-#### **Why Composition?**
-* PortfolioManager coordinates multiple objects without inheriting
-* Allows flexible relationships, scalable system design
-* Maintains single responsibility principle
-
+AI collaboration was documented separately in individual AI journals in
+accordance with course guidelines.
 
 
 
