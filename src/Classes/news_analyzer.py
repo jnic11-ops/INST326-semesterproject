@@ -60,7 +60,7 @@ class NewsAnalyzer:
                 "description": entry.get("description", "").strip(),
                 "published_at": self._parse_date(entry.get("published", "")),
                 "source": feed_url,
-                "url": entry.get("link", "")
+                "link": entry.get("link", "")
             })
 
         return articles
