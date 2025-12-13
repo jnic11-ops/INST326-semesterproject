@@ -12,6 +12,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from datetime import datetime, timedelta
 import subprocess
 import platform
+import webbrowser
 
 from system.system_controller import SystemController
 
@@ -291,19 +292,24 @@ class Page2_News(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
+        self.article_links = []
 
-        ttk.Button(self, text="← Back",
-                   command=lambda: controller.show_frame(HomePage)
-                   ).pack(anchor="w", padx=10, pady=10)
+        ttk.Button(
+            self, text="← Back",
+            command=lambda: controller.show_frame(HomePage)
+        ).pack(anchor="w", padx=10, pady=10)
 
-        ttk.Label(self, text="News Sentiment Analysis",
-                  font=("Arial", 18, "bold")).pack()
+        ttk.Label(
+            self, text="News Sentiment Analysis",
+            font=("Arial", 18, "bold")
+        ).pack()
 
         ttk.Label(
             self,
             text=(
-                "Use this screen to fetch financial news for a stock and analyze\n"
-                "whether articles are positive, neutral, or negative."
+                "Analyze recent financial news for a stock.\n"
+                "Left: sentiment breakdown and keywords.\n"
+                "Right: click article titles to open full stories."
             ),
             foreground="gray30",
             wraplength=720,
@@ -314,12 +320,50 @@ class Page2_News(tk.Frame):
         self.ticker_entry = AutoCompleteEntry(self, COMMON_TICKERS, width=22)
         self.ticker_entry.pack()
 
-        ttk.Button(self, text="Analyze News",
-                   command=self.run_news).pack(pady=10)
+        ttk.Button(
+            self, text="Analyze News",
+            command=self.run_news
+        ).pack(pady=10)
 
-        self.output = tk.Text(self, width=90, height=20)
-        self.output.pack()
+        # -----------------------------
+        # Main content frame (2 columns)
+        # -----------------------------
+        content = ttk.Frame(self)
+        content.pack(fill="both", expand=True, padx=10)
 
+        # LEFT — Text output
+        left_frame = ttk.Frame(content)
+        left_frame.pack(side="left", fill="both", expand=True)
+
+        self.output = tk.Text(left_frame, width=55, height=20)
+        self.output.pack(fill="both", expand=True)
+
+        # RIGHT — Article links
+        right_frame = ttk.Frame(content)
+        right_frame.pack(side="right", fill="y", padx=(10, 0))
+
+        ttk.Label(
+            right_frame,
+            text="News Articles",
+            font=("Arial", 12, "bold")
+        ).pack(anchor="w")
+
+        self.link_listbox = tk.Listbox(
+            right_frame, width=45, height=20, cursor="hand2"
+        )
+        self.link_listbox.pack(side="left", fill="y")
+
+        scrollbar = ttk.Scrollbar(
+            right_frame, orient="vertical", command=self.link_listbox.yview
+        )
+        scrollbar.pack(side="right", fill="y")
+
+        self.link_listbox.config(yscrollcommand=scrollbar.set)
+        self.link_listbox.bind("<<ListboxSelect>>", self.open_article)
+
+    # -----------------------------
+    # Run News Analysis
+    # -----------------------------
     def run_news(self):
         ticker = self.ticker_entry.get().upper().strip()
 
@@ -332,14 +376,20 @@ class Page2_News(tk.Frame):
 
         sentiments = result["sentiment"]
         keywords = result["keywords"]
+        articles = result["articles"]
 
         pos = sum(1 for x in sentiments if x["sentiment_label"] == "positive")
         neg = sum(1 for x in sentiments if x["sentiment_label"] == "negative")
         neu = len(sentiments) - pos - neg
 
+        # -----------------------------
+        # LEFT PANEL OUTPUT
+        # -----------------------------
         output = (
-            f"\nArticles Retrieved: {len(result['articles'])}\n"
-            f"Positive: {pos}\nNeutral: {neu}\nNegative: {neg}\n\n"
+            f"\nArticles Retrieved: {len(articles)}\n"
+            f"Positive: {pos}\n"
+            f"Neutral: {neu}\n"
+            f"Negative: {neg}\n\n"
             "Top Keywords:\n"
         )
 
@@ -349,6 +399,30 @@ class Page2_News(tk.Frame):
         self.output.delete("1.0", tk.END)
         self.output.insert(tk.END, output)
 
+        # -----------------------------
+        # RIGHT PANEL LINKS
+        # -----------------------------
+        self.link_listbox.delete(0, tk.END)
+        self.article_links.clear()
+
+        for article in articles:
+            title = article.get("title", "Untitled Article")
+            link = article.get("link")
+
+            if link:
+                self.link_listbox.insert(tk.END, title)
+                self.article_links.append(link)
+
+    # -----------------------------
+    # Open selected article
+    # -----------------------------
+    def open_article(self, event):
+        if not self.link_listbox.curselection():
+            return
+
+        index = self.link_listbox.curselection()[0]
+        url = self.article_links[index]
+        webbrowser.open(url)
 
 # ======================================================
 # PAGE 3 — Portfolio Dashboard
