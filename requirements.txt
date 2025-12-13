@@ -1,7 +1,5 @@
 pandas
 yfinance
 feedparser
-fastapi
-uvicorn[standard]
 requests
 matplotlib
