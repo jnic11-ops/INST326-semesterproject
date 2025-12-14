@@ -7,8 +7,8 @@ Capstone Integration, Persistence, and Testing
 ## Team Information
 **Team Members & Contributions**
 - **Matthew Daniel** — Lead Developer; system integration, GUI development, persistence implementation, documentation, testing coordination
-- **[Teammate Name]** — Testing and validation
-- **[Teammate Name]** — Data analysis and portfolio logic
+- **Jacob Nicholson** — Testing and validation
+- **Matthew Daniel & Jacob Nicholson** — Data analysis and portfolio logic
 
 ---
 
