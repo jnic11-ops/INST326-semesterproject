@@ -163,6 +163,7 @@ pip install -r requirements.txt
 * feedparser
 * requests
 * matplotlib
+* pytest (Install this specifically to run unit and integration tests)
 
 ---
 
