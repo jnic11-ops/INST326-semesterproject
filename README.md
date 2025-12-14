@@ -24,7 +24,8 @@ The system answers real-world financial information questions by combining:
 - Persistent data storage and exportable reports
 
 This Project 4 submission represents a **capstone artifact**, demonstrating system completeness, data persistence, testing strategy, and professional software development practices.
-#When running app.py may need to run in VSCode or in your computers terminal
+
+When running app.py may need to run in VSCode or in your computers terminal
 ---
 
 ## Key Features
